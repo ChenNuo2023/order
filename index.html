@@ -164,7 +164,8 @@
             const progressColor = colorClass.replace('text-', 'bg-');
 
             return (
-                <div className="mt-8 w-full max-w-sm mx-auto">
+                // 优化 Timer 布局：Landscape 模式下移除 mt-8，使其能对齐
+                <div className="mt-8 landscape:mt-0 w-full max-w-sm mx-auto">
                     <div className="bg-black/30 rounded-3xl p-6 border border-white/10 relative overflow-hidden backdrop-blur-sm">
                         <div className="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full">
                             <div className={`h-full transition-all duration-1000 ${progressColor}`} style={{ width: `${progress}%` }}></div>
@@ -432,8 +433,8 @@
 
                         {isCooking && (
                             <div className={`fixed inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-[100dvh] w-[100vw]`}>
-                                {/* 顶栏 */}
-                                <div className={`flex justify-between items-center p-4 md:p-5 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0 safe-area-top`}>
+                                {/* 顶栏 - 横屏模式下缩小高度 (landscape:p-2) */}
+                                <div className={`flex justify-between items-center p-4 landscape:p-2 md:p-5 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0 safe-area-top`}>
                                     <div className="flex items-center gap-4">
                                         <button onClick={() => setIsCooking(false)} className="p-2 rounded-full hover:bg-white/10"><X size={24} /></button>
                                         <div className="flex flex-col">
@@ -493,7 +494,7 @@
                                     <div className={`${currentTheme.cook.progress} h-2 transition-all duration-500`} style={{ width: `${((currentStepIndex + 1) / cookingFlow.length) * 100}%` }}></div>
                                 </div>
 
-                                {/* 核心内容区 - 横屏适配优化 */}
+                                {/* 核心内容区 - 双模式布局 */}
                                 <div className="flex-1 flex flex-col overflow-hidden relative">
                                     <div className="w-full h-full overflow-y-auto custom-scrollbar p-4 md:p-8 flex flex-col items-center">
                                         
@@ -531,10 +532,14 @@
 
                                         {currentStep.type === 'STEP' && (
                                             <div className="w-full h-full flex flex-col md:justify-center max-w-5xl mx-auto pb-10">
-                                                {/* 横屏优化容器 */}
-                                                <div className="flex flex-col landscape:md:flex-row gap-6 md:gap-10 items-stretch landscape:md:h-[60vh]">
-                                                    {/* 左侧：步骤信息 (横屏时在左侧) */}
-                                                    <div className={`${currentTheme.cook.card} flex-1 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border ${currentTheme.cook.border} relative flex flex-col transition-all overflow-hidden`}>
+                                                {/* ★ 布局核心逻辑：
+                                                    1. Portrait (竖屏): flex-col (上下堆叠)
+                                                    2. Landscape (横屏): landscape:flex-row (左右分栏) - 适配手机横屏
+                                                 */}
+                                                <div className="flex flex-col landscape:flex-row gap-6 md:gap-10 items-stretch landscape:items-center landscape:h-[70vh] landscape:md:h-[60vh] w-full">
+                                                    
+                                                    {/* 左侧：步骤信息 (横屏时左侧60%宽度) */}
+                                                    <div className={`${currentTheme.cook.card} w-full landscape:w-3/5 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border ${currentTheme.cook.border} relative flex flex-col transition-all overflow-hidden landscape:h-full`}>
                                                         <div className="relative z-10 shrink-0">
                                                             <div className="flex justify-between items-start mb-6">
                                                                 <span className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-black tracking-widest uppercase border border-white/10 bg-white/5 ${currentTheme.cook.accentText}`}>{currentStep.sectionTitle}</span>
@@ -548,9 +553,9 @@
                                                         </div>
                                                     </div>
 
-                                                    {/* 右侧/下方：计时器 (横屏时在右侧，固定宽度) */}
+                                                    {/* 右侧/下方：计时器 (横屏时右侧40%宽度) */}
                                                     {currentStep.timerSeconds > 0 && (
-                                                        <div className="shrink-0 w-full landscape:md:w-[350px] flex items-center justify-center">
+                                                        <div className="shrink-0 w-full landscape:w-2/5 flex items-center justify-center">
                                                             <Timer key={currentStepIndex} initialSeconds={currentStep.timerSeconds} onComplete={handleTimerComplete} colorClass={currentTheme.cook.accentText} />
                                                         </div>
                                                     )}
@@ -560,10 +565,10 @@
                                     </div>
                                 </div>
 
-                                {/* 底部导航 - 增加高度适配手势 */}
-                                <div className={`p-4 md:p-6 pb-8 md:pb-10 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 md:gap-6 shrink-0 safe-area-bottom`}>
-                                    <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-5 md:p-6 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={32} /></button>
-                                    <button onClick={currentStepIndex === cookingFlow.length - 1 ? () => setIsCooking(false) : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[3] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-5 md:p-6 rounded-3xl font-black text-xl md:text-3xl transition-all shadow-2xl flex items-center justify-center gap-4 active:scale-95 ring-4 ring-white/10`}>
+                                {/* 底部导航 - 横屏模式下缩小 padding (landscape:p-2) */}
+                                <div className={`p-4 landscape:p-2 md:p-6 pb-8 landscape:pb-4 md:pb-10 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 md:gap-6 shrink-0 safe-area-bottom`}>
+                                    <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-5 landscape:p-3 md:p-6 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={32} /></button>
+                                    <button onClick={currentStepIndex === cookingFlow.length - 1 ? () => setIsCooking(false) : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[3] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-5 landscape:p-3 md:p-6 rounded-3xl font-black text-xl md:text-3xl transition-all shadow-2xl flex items-center justify-center gap-4 active:scale-95 ring-4 ring-white/10`}>
                                         {currentStepIndex === cookingFlow.length - 1 ? '修炼完成' : (currentStep.type === 'INTRO' ? '查看备料' : (currentStep.type === 'PREP' ? '开始修炼' : '下一式'))}
                                         {currentStepIndex !== cookingFlow.length - 1 && <ChevronRight size={32} />}
                                     </button>
