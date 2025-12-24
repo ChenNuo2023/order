@@ -62,6 +62,9 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom);
         }
+        .safe-area-top {
+            padding-top: max(env(safe-area-inset-top), 20px);
+        }
     </style>
 </head>
 <body class="bg-stone-100 overflow-hidden text-base md:text-lg">
@@ -74,7 +77,8 @@
             Plus, Trash2, RefreshCw, ChefHat, Type, 
             Flame, Utensils, PlayCircle, X, ChevronLeft, ChevronRight, 
             CheckCircle, ShoppingCart, Lightbulb, Clock, Play, Pause, RotateCcw,
-            Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen, Star
+            Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen, Star,
+            History, Save
         } from 'lucide-react';
 
         // --- 样式配置中心 ---
@@ -275,11 +279,66 @@
             const [isCooking, setIsCooking] = useState(false);
             const [currentStepIndex, setCurrentStepIndex] = useState(0);
             const [showIngredientsModal, setShowIngredientsModal] = useState(false);
+            const [showTipsModal, setShowTipsModal] = useState(false); // 增加 Tips 弹窗控制
             const [showThemeModal, setShowThemeModal] = useState(false);
             const [menuTitle, setMenuTitle] = useState('');
             const [menuSubtitle, setMenuSubtitle] = useState('');
             const [ingredientGroups, setIngredientGroups] = useState([]);
             const [sections, setSections] = useState([]);
+            const [tips, setTips] = useState([]); // 增加小贴士状态
+            const [savedMenus, setSavedMenus] = useState([]); // 历史记录
+
+            // 加载历史记录
+            useEffect(() => {
+                try {
+                    const saved = localStorage.getItem('cooking_master_menus');
+                    if (saved) {
+                        setSavedMenus(JSON.parse(saved));
+                    }
+                } catch (e) {
+                    console.error("Failed to load history", e);
+                }
+            }, []);
+
+            // 保存历史记录的函数 - 增加 tips 参数
+            const saveMenuToHistory = (title, subtitle, ingredients, secs, currentTips) => {
+                if (!title) return;
+                const newMenu = { 
+                    id: generateId(),
+                    title, 
+                    subtitle, 
+                    ingredients, 
+                    sections: secs, 
+                    tips: currentTips || [], // 保存小贴士
+                    timestamp: Date.now() 
+                };
+                
+                setSavedMenus(prev => {
+                    // 去重：如果已存在同名菜谱，先删除旧的
+                    const filtered = prev.filter(m => m.title !== title);
+                    // 将新的加到最前面，并保留最近20条
+                    const updated = [newMenu, ...filtered].slice(0, 20);
+                    localStorage.setItem('cooking_master_menus', JSON.stringify(updated));
+                    return updated;
+                });
+            };
+
+            const loadMenuFromHistory = (menu) => {
+                setMenuTitle(menu.title);
+                setMenuSubtitle(menu.subtitle);
+                setIngredientGroups(menu.ingredients);
+                setSections(menu.sections);
+                setTips(menu.tips || []); // 加载小贴士
+            };
+
+            const deleteMenuFromHistory = (e, id) => {
+                e.stopPropagation();
+                setSavedMenus(prev => {
+                    const updated = prev.filter(m => m.id !== id);
+                    localStorage.setItem('cooking_master_menus', JSON.stringify(updated));
+                    return updated;
+                });
+            };
 
             // 构建烹饪流程
             const cookingFlow = useMemo(() => {
@@ -317,9 +376,11 @@
             const parseTextToMenu = () => {
                 if (!rawText.trim()) return;
                 const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
-                let newTitle = ''; let newSubtitle = ''; let newIngredientGroups = []; let newSections = [];
+                let newTitle = ''; let newSubtitle = ''; let newIngredientGroups = []; let newSections = []; let newTips = []; // 初始化小贴士
                 let currentSection = { id: generateId(), title: '步骤', items: [] };
                 let parseState = 'UNKNOWN'; let currentIngCategory = '清单'; 
+                
+                // 智能标题识别
                 if (lines.length > 0) {
                     const firstLine = lines[0];
                     if (firstLine.length < 20 && !/[:：]/.test(firstLine)) {
@@ -334,7 +395,9 @@
                         newSubtitle = descriptionLines.join('\n');
                     }
                 }
+
                 lines.forEach(line => {
+                    // 1. 识别食材
                     if (/^(🛒|🧂|🥬|🥩|食材|主料|配料|调料)/.test(line)) {
                         parseState = 'INGREDIENTS';
                         if (!line.includes('：') && !line.includes(':')) {
@@ -343,6 +406,7 @@
                             return;
                         }
                     }
+                    // 2. 识别步骤
                     if (/^(👨‍🍳|🍳|🔥|做法|步骤|制作)/.test(line)) {
                         parseState = 'STEPS';
                         if (currentSection.items.length > 0) {
@@ -351,7 +415,16 @@
                         }
                         return;
                     }
-                    if (/^(💡|⚠️|❗️|小贴士|注意|提示)/.test(line)) { return; } // Ignore tips line header for now
+                    // 3. 识别小贴士 (关键词触发后，进入 TIPS 模式)
+                    if (/^(💡|⚠️|❗️|小贴士|注意|提示)/.test(line)) { 
+                        parseState = 'TIPS';
+                        // 如果同一行就有内容（如：小贴士：多放糖），则提取内容
+                        const content = line.replace(/^(💡|⚠️|❗️|小贴士|注意|提示)[:：]?\s*/, '');
+                        if(content) newTips.push(content);
+                        return; 
+                    } 
+
+                    // 状态机处理
                     if (parseState === 'INGREDIENTS') {
                         const prefixMatch = line.match(/^([^:：]+)[:：](.*)/);
                         let category = currentIngCategory; let content = line;
@@ -360,7 +433,11 @@
                         let group = newIngredientGroups.find(g => g.category === category);
                         if (!group) { group = { category, items: [] }; newIngredientGroups.push(group); }
                         group.items.push(...parts);
+                    } else if (parseState === 'TIPS') {
+                        // 如果处于 TIPS 模式，后续所有内容都归为小贴士，不再进入步骤
+                        newTips.push(line.replace(/^[;；。.]/, ''));
                     } else {
+                        // 默认为步骤逻辑
                         const heatTimeRegex = /(大火|中火|小火|微火|猛火|文火|转.*?火|[0-9一二三]+秒|[0-9一二三]+分钟|[0-9]+min|油温.*?成热)/g;
                         const matches = line.match(heatTimeRegex);
                         const heatInfo = matches ? matches.join(' ') : ''; 
@@ -371,15 +448,23 @@
                         currentSection.items.push({ id: generateId(), name: name, price: heatInfo, desc: desc });
                     }
                 });
+
                 if (currentSection.items.length > 0) newSections.push(currentSection);
+                
                 if (newTitle) setMenuTitle(newTitle);
                 if (newSubtitle) setMenuSubtitle(newSubtitle);
                 if (newIngredientGroups.length > 0) setIngredientGroups(newIngredientGroups);
                 if (newSections.length > 0) setSections(newSections);
+                if (newTips.length > 0) setTips(newTips); // 设置小贴士
+
+                // 自动保存
+                if (newTitle) {
+                    saveMenuToHistory(newTitle, newSubtitle, newIngredientGroups, newSections, newTips);
+                }
             };
 
             const startCooking = () => {
-                if (cookingFlow.length > 0) { setCurrentStepIndex(0); setIsCooking(true); setShowIngredientsModal(false); }
+                if (cookingFlow.length > 0) { setCurrentStepIndex(0); setIsCooking(true); setShowIngredientsModal(false); setShowTipsModal(false); }
             };
 
             const handleTimerComplete = () => { if (navigator.vibrate) navigator.vibrate([500, 200, 500]); speak("大厨，火候到了！"); };
@@ -393,8 +478,8 @@
                     {/* 编辑区 - 针对iPad优化布局 */}
                     {!isCooking && (
                         <div className="w-full md:w-[400px] lg:w-[450px] bg-white shadow-xl z-20 border-b md:border-r border-stone-200 h-[45vh] md:h-full relative flex flex-col shrink-0">
-                            {/* 1. 每日一练 大标题 */}
-                            <div className="p-4 md:p-6 bg-stone-900 text-amber-500 shrink-0 shadow-lg z-20">
+                            {/* 1. 每日一练 大标题 - 优化顶部安全距离，增加 pt-14 */}
+                            <div className="pt-14 pb-4 px-4 md:p-6 bg-stone-900 text-amber-500 shrink-0 shadow-lg z-20">
                                 <div className="flex items-center gap-3 mb-1">
                                     <Star className="fill-amber-500 animate-pulse" size={20}/>
                                     <h2 className="text-xl md:text-2xl font-black tracking-widest uppercase">每日一练 · 终成厨圣</h2>
@@ -409,7 +494,7 @@
                                     <button onClick={parseTextToMenu} className="w-full bg-stone-900 text-white font-bold py-3 md:py-4 rounded-xl text-sm md:text-base hover:bg-stone-800 shadow-lg transform active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2"><Sparkles size={18} /> 参悟秘籍</button>
                                 </div>
                                 
-                                <div className="space-y-4 md:space-y-6 pb-20">
+                                <div className="space-y-4 md:space-y-6 pb-6">
                                     <div>
                                         <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">菜名</label>
                                         <input value={menuTitle} onChange={e => setMenuTitle(e.target.value)} className="w-full font-black text-2xl md:text-3xl border-b-2 border-stone-200 focus:border-amber-600 outline-none bg-transparent transition-all py-2" placeholder="输入菜名" />
@@ -419,6 +504,24 @@
                                         <textarea value={menuSubtitle} onChange={e => setMenuSubtitle(e.target.value)} className="w-full text-base md:text-lg text-stone-600 border-b border-stone-200 focus:border-amber-600 outline-none resize-none h-16 bg-transparent py-2" placeholder="简短描述..." />
                                     </div>
                                 </div>
+
+                                {/* 藏经阁 - 历史记录 */}
+                                {savedMenus.length > 0 && (
+                                    <div className="pt-6 border-t border-stone-200 pb-20">
+                                        <h3 className="text-sm font-bold text-stone-500 mb-4 flex items-center gap-2 uppercase tracking-widest"><History size={16} /> 藏经阁 ({savedMenus.length})</h3>
+                                        <div className="space-y-3">
+                                            {savedMenus.map(menu => (
+                                                <div key={menu.id} onClick={() => loadMenuFromHistory(menu)} className="group bg-white p-3 rounded-xl border border-stone-200 hover:border-amber-500 cursor-pointer shadow-sm flex justify-between items-center transition-all hover:shadow-md">
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="font-bold text-stone-800 truncate">{menu.title}</div>
+                                                        <div className="text-xs text-stone-400 truncate">{new Date(menu.timestamp).toLocaleDateString()} · {menu.sections.reduce((acc, s) => acc + s.items.length, 0)} 个步骤</div>
+                                                    </div>
+                                                    <button onClick={(e) => deleteMenuFromHistory(e, menu.id)} className="p-2 text-stone-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -442,6 +545,12 @@
                                         </div>
                                     </div>
                                     <div className="flex gap-3">
+                                        {/* 锦囊/小贴士按钮 */}
+                                        {tips.length > 0 && (
+                                            <button onClick={() => setShowTipsModal(true)} className="px-4 py-2 rounded-full text-sm font-bold bg-white/10 hover:bg-white/20 flex items-center gap-2">
+                                                <Lightbulb size={16} /> <span className="hidden md:inline">锦囊</span>
+                                            </button>
+                                        )}
                                         <button onClick={() => setShowThemeModal(!showThemeModal)} className="px-4 py-2 rounded-full text-sm font-bold bg-white/10 hover:bg-white/20 flex items-center gap-2"><Palette size={16} /> <span className="hidden md:inline">流派</span></button>
                                         <button onClick={() => setShowIngredientsModal(true)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all bg-white/10 hover:bg-white/20 flex items-center gap-2`}><ShoppingCart size={16} /> 查料</button>
                                     </div>
@@ -469,6 +578,29 @@
                                                                     </div>
                                                                 ))}
                                                             </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* 小贴士模态框 - 新增 */}
+                                {showTipsModal && (
+                                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                                        <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowTipsModal(false)}></div>
+                                        <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-3xl p-6 md:p-10 shadow-2xl w-full max-w-3xl relative animate-in zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col`}>
+                                            <div className="flex justify-between items-center mb-8">
+                                                <h3 className={`text-2xl md:text-3xl font-black text-yellow-400 flex items-center gap-3`}><Lightbulb size={32}/> 秘籍锦囊</h3>
+                                                <button onClick={() => setShowTipsModal(false)} className="p-2 hover:bg-white/10 rounded-full"><X size={28}/></button>
+                                            </div>
+                                            <div className="overflow-y-auto custom-scrollbar flex-1 pr-2">
+                                                <div className="space-y-4">
+                                                    {tips.map((tip, i) => (
+                                                        <div key={i} className="flex items-start gap-4 p-4 rounded-2xl bg-yellow-400/10 border border-yellow-400/20">
+                                                            <div className="w-2 h-2 rounded-full bg-yellow-400 mt-2.5 shrink-0"></div>
+                                                            <span className="text-xl md:text-2xl font-medium text-yellow-100 leading-relaxed">{tip}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -631,6 +763,21 @@
                                                 </div>
                                             ))}
                                         </div>
+
+                                        {/* 预览区显示小贴士 */}
+                                        {tips.length > 0 && (
+                                            <div className="mt-16 p-8 bg-yellow-50/50 rounded-3xl border border-yellow-200">
+                                                <h3 className="font-black text-2xl text-amber-600 mb-6 flex items-center gap-3"><Lightbulb size={28}/> 秘籍锦囊</h3>
+                                                <ul className="space-y-4">
+                                                    {tips.map((tip, i) => (
+                                                        <li key={i} className="flex gap-4 text-stone-600 text-lg leading-relaxed">
+                                                            <span className="text-amber-400 font-bold">•</span>
+                                                            {tip}
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            </div>
+                                        )}
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center justify-center h-full text-stone-300 py-20">
@@ -638,7 +785,7 @@
                                             <Scroll size={48} className="text-stone-400" />
                                         </div>
                                         <h3 className="text-xl md:text-3xl font-black uppercase tracking-widest text-center px-4 mb-2 text-stone-400">请在左侧粘贴秘籍</h3>
-                                        <p className="text-stone-300">支持从小红书、下厨房等复制文本</p>
+                                        
                                     </div>
                                 )}
                             </div>
