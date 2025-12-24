@@ -1,576 +1,118 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { 
-  Plus, Trash2, RefreshCw, ChefHat, Type, 
-  Flame, Utensils, PlayCircle, X, ChevronLeft, ChevronRight, 
-  CheckCircle, ShoppingCart, Lightbulb, Clock, Play, Pause, RotateCcw,
-  Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen
-} from 'lucide-react';
-
-// --- 样式配置中心 ---
-const THEMES = {
-  emerald: { 
-    name: '翡翠之森',
-    preview: { bg: 'bg-stone-50', text: 'text-stone-800', border: 'border-stone-300', accent: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-800' },
-    cook: { 
-      bg: 'bg-stone-950', card: 'bg-stone-900', text: 'text-stone-200', 
-      primary: 'bg-emerald-600', primaryHover: 'hover:bg-emerald-500', 
-      accentText: 'text-emerald-400', progress: 'bg-emerald-500',
-      border: 'border-stone-800'
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>秘籍修炼</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      background: #f5f5f5;
+      color: #222;
     }
-  },
-  orange: { 
-    name: '业火红莲',
-    preview: { bg: 'bg-orange-50', text: 'text-stone-800', border: 'border-orange-200', accent: 'text-orange-700', badge: 'bg-orange-100 text-orange-800' },
-    cook: { 
-      bg: 'bg-stone-950', card: 'bg-stone-900', text: 'text-stone-200', 
-      primary: 'bg-orange-600', primaryHover: 'hover:bg-orange-500', 
-      accentText: 'text-orange-400', progress: 'bg-orange-500',
-      border: 'border-stone-800'
+    header {
+      background: #111;
+      color: #fff;
+      padding: 16px;
+      text-align: center;
+      font-weight: bold;
+      letter-spacing: 2px;
     }
-  },
-  blue: { 
-    name: '深海龙宫',
-    preview: { bg: 'bg-slate-50', text: 'text-slate-800', border: 'border-slate-300', accent: 'text-blue-700', badge: 'bg-blue-100 text-blue-800' },
-    cook: { 
-      bg: 'bg-slate-950', card: 'bg-slate-900', text: 'text-slate-200', 
-      primary: 'bg-blue-600', primaryHover: 'hover:bg-blue-500', 
-      accentText: 'text-blue-400', progress: 'bg-blue-500',
-      border: 'border-slate-800'
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 16px;
     }
-  },
-  pink: { 
-    name: '樱花剑舞',
-    preview: { bg: 'bg-rose-50', text: 'text-stone-800', border: 'border-rose-200', accent: 'text-rose-700', badge: 'bg-rose-100 text-rose-800' },
-    cook: { 
-      bg: 'bg-zinc-950', card: 'bg-zinc-900', text: 'text-zinc-200', 
-      primary: 'bg-rose-600', primaryHover: 'hover:bg-rose-500', 
-      accentText: 'text-rose-400', progress: 'bg-rose-500',
-      border: 'border-zinc-800'
+    textarea {
+      width: 100%;
+      height: 140px;
+      padding: 12px;
+      font-size: 14px;
+      box-sizing: border-box;
     }
-  }
-};
-
-const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
-
-// 倒计时组件
-const Timer = ({ initialSeconds, onComplete, colorClass }) => {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const [isActive, setIsActive] = useState(false);
-  const intervalRef = useRef(null);
-
-  useEffect(() => {
-    setSeconds(initialSeconds);
-    setIsActive(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  }, [initialSeconds]);
-
-  useEffect(() => {
-    if (isActive && seconds > 0) {
-      intervalRef.current = setInterval(() => {
-        setSeconds(s => s - 1);
-      }, 1000);
-    } else if (seconds === 0 && isActive) {
-      setIsActive(false);
-      clearInterval(intervalRef.current);
-      if (onComplete) onComplete();
+    button {
+      width: 100%;
+      margin-top: 12px;
+      padding: 14px;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
     }
-    return () => clearInterval(intervalRef.current);
-  }, [isActive, seconds, onComplete]);
+    h1 {
+      font-size: 32px;
+      margin: 24px 0 8px;
+    }
+    h2 {
+      margin-top: 32px;
+      border-left: 4px solid #333;
+      padding-left: 10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin: 6px 0;
+    }
+    .card {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 16px;
+    }
+    .muted {
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
 
-  const toggleTimer = () => setIsActive(!isActive);
-  const resetTimer = () => {
-    setIsActive(false);
-    setSeconds(initialSeconds);
-  };
+<body>
+  <header>📖 秘籍修炼 · 单页版</header>
 
-  const formatTime = (totalSeconds) => {
-    const m = Math.floor(totalSeconds / 60);
-    const s = totalSeconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
-  };
-
-  const progress = ((initialSeconds - seconds) / initialSeconds) * 100;
-  const progressColor = colorClass.replace('text-', 'bg-');
-
-  return (
-    <div className="mt-6 w-full max-w-xs mx-auto">
-      <div className="bg-black/30 rounded-2xl p-4 border border-white/10 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
-            <div className={`h-full transition-all duration-1000 ${progressColor}`} style={{ width: `${progress}%` }}></div>
-        </div>
-        
-        <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-full ${isActive ? `${colorClass} bg-white/10 animate-pulse` : 'text-gray-400 bg-white/5'}`}>
-                <Clock size={20} />
-              </div>
-              <span className="text-3xl font-mono font-bold text-white tracking-wider">
-                {formatTime(seconds)}
-              </span>
-            </div>
-            
-            <div className="flex gap-2">
-              <button onClick={toggleTimer} className={`p-3 rounded-full transition-colors text-white ${isActive ? 'bg-yellow-600 hover:bg-yellow-500' : progressColor.replace('bg-', 'bg-') + ' hover:opacity-80'}`}>
-                {isActive ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
-              </button>
-              <button onClick={resetTimer} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-gray-300">
-                <RotateCcw size={18} />
-              </button>
-            </div>
-        </div>
-      </div>
+  <div class="container">
+    <div class="card">
+      <textarea id="input" placeholder="粘贴菜谱原文，例如：红烧肉..."></textarea>
+      <button onclick="parse()">参悟秘籍</button>
     </div>
-  );
-};
 
-// 动态火焰
-const AnimatedFlame = ({ level }) => {
-  const configs = {
-    low: {
-      scale: 0.9,
-      gradientStops: [{ offset: '0%', color: '#FCD34D' }, { offset: '100%', color: '#F59E0B' }],
-      coreColor: '#FFFBEB',
-      swayValues: "-2; 2; -2", 
-      swayDur: "3s",
-      morphDur: "2s",
-      glow: "drop-shadow(0 0 5px rgba(252, 211, 77, 0.5))"
-    },
-    medium: {
-      scale: 1.2,
-      gradientStops: [{ offset: '0%', color: '#F97316' }, { offset: '100%', color: '#DC2626' }],
-      coreColor: '#FEF3C7',
-      swayValues: "-3; 3; -3", 
-      swayDur: "2s",
-      morphDur: "1.5s",
-      glow: "drop-shadow(0 0 10px rgba(249, 115, 22, 0.6))"
-    },
-    high: {
-      scale: 1.5,
-      gradientStops: [{ offset: '0%', color: '#EF4444' }, { offset: '100%', color: '#7C3AED' }],
-      coreColor: '#E0F2FE', 
-      swayValues: "-1; 1; -1; 1; -1", 
-      swayDur: "0.2s", 
-      morphDur: "0.8s",
-      glow: "drop-shadow(0 0 15px rgba(124, 58, 237, 0.7))"
-    }
-  };
+    <div id="output"></div>
+  </div>
 
-  const c = level === 3 ? configs.high : (level === 2 ? configs.medium : configs.low);
+  <script>
+    function parse() {
+      const text = document.getElementById("input").value.trim();
+      if (!text) return;
 
-  return (
-    <div style={{ transform: `scale(${c.scale})`, filter: c.glow, transition: 'transform 0.5s ease' }}>
-      <svg width="40" height="50" viewBox="0 0 200 200" overflow="visible">
-        <defs>
-          <linearGradient id={`fireGrad-${level}`} x1="0%" y1="100%" x2="0%" y2="0%">
-            {c.gradientStops.map((stop, i) => (
-              <stop key={i} offset={stop.offset} stopColor={stop.color} />
-            ))}
-          </linearGradient>
-        </defs>
-        <g style={{ transformOrigin: "100px 180px" }}>
-          <animateTransform attributeName="transform" type="rotate" values={c.swayValues} dur={c.swayDur} repeatCount="indefinite" />
-          <path fill={`url(#fireGrad-${level})`} d="M100,180 Q60,180 50,110 Q40,60 100,20 Q160,60 150,110 Q140,180 100,180 Z">
-            <animate attributeName="d" values="M100,180 Q60,180 50,110 Q40,60 100,20 Q160,60 150,110 Q140,180 100,180 Z; M100,180 Q55,180 45,115 Q35,65 95,15 Q165,65 155,115 Q145,180 100,180 Z; M100,180 Q65,180 55,110 Q45,60 105,25 Q155,60 145,110 Q135,180 100,180 Z; M100,180 Q60,180 50,110 Q40,60 100,20 Q160,60 150,110 Q140,180 100,180 Z" dur={c.morphDur} repeatCount="indefinite" />
-          </path>
-          <path fill={c.coreColor} fillOpacity="0.7" d="M100,170 Q80,170 75,130 Q70,90 100,70 Q130,90 125,130 Q120,170 100,170 Z">
-             <animate attributeName="d" values="M100,170 Q80,170 75,130 Q70,90 100,70 Q130,90 125,130 Q120,170 100,170 Z; M100,170 Q78,170 72,132 Q68,92 100,72 Q132,92 128,132 Q122,170 100,170 Z; M100,170 Q82,170 78,130 Q72,90 100,68 Q128,90 122,130 Q118,170 100,170 Z; M100,170 Q80,170 75,130 Q70,90 100,70 Q130,90 125,130 Q120,170 100,170 Z" dur={c.morphDur} repeatCount="indefinite" />
-          </path>
-        </g>
-      </svg>
-    </div>
-  );
-};
+      const lines = text.split("\n").map(l => l.trim()).filter(Boolean);
+      const title = lines[0];
+      const rest = lines.slice(1);
 
-// 火候展示
-const HeatDisplay = ({ heatText }) => {
-  let level = 1; 
-  let label = "文火";
-  let colorClass = 'text-yellow-400';
-  if (/大火|猛火|High/.test(heatText)) { level = 3; label = heatText || "大火"; colorClass = 'text-purple-400'; }
-  else if (/中火|Medium/.test(heatText)) { level = 2; label = heatText || "中火"; colorClass = 'text-orange-400'; }
-  else if (/小火|文火|微火|Low/.test(heatText)) { level = 1; label = heatText || "小火"; colorClass = 'text-yellow-400'; }
-  return (
-    <div className="flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-xl min-w-[80px] h-full">
-      <AnimatedFlame level={level} />
-      <span className={`text-xs font-bold ${colorClass} tracking-wider mt-2 uppercase text-center`}>{label}</span>
-    </div>
-  );
-};
+      let ingredients = [];
+      let steps = [];
 
-export default function App() {
-  const [currentThemeKey, setCurrentThemeKey] = useState('emerald');
-  const [rawText, setRawText] = useState('');
-  const [isCooking, setIsCooking] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [showIngredientsModal, setShowIngredientsModal] = useState(false);
-  const [showTipsModal, setShowTipsModal] = useState(false);
-  const [showThemeModal, setShowThemeModal] = useState(false);
-  const [menuTitle, setMenuTitle] = useState('');
-  const [menuSubtitle, setMenuSubtitle] = useState('');
-  const [ingredientGroups, setIngredientGroups] = useState([]);
-  const [tips, setTips] = useState([]);
-  const [sections, setSections] = useState([]);
-
-  // 构建烹饪流程
-  const cookingFlow = useMemo(() => {
-    const flow = [];
-    if (menuTitle) {
-      flow.push({ type: 'INTRO', name: menuTitle, desc: menuSubtitle || "绝世名菜，由此开启", sectionTitle: '秘籍总纲' });
-    }
-    if (ingredientGroups.length > 0) {
-      flow.push({ type: 'PREP', name: '备料阶段', desc: '工欲善其事，必先利其器。请检查以下食材。', sectionTitle: '准备工作' });
-    }
-    sections.forEach(section => {
-      section.items.forEach(item => {
-        let seconds = 0;
-        const timeMatch = (item.price + item.desc).match(/(\d+)\s*(分钟|min|m|秒|s)/);
-        if (timeMatch) {
-          const val = parseInt(timeMatch[1]);
-          const unit = timeMatch[2];
-          if (unit.startsWith('分') || unit === 'min' || unit === 'm') seconds = val * 60;
-          else seconds = val;
-        }
-        flow.push({ type: 'STEP', ...item, sectionTitle: section.title, timerSeconds: seconds });
+      rest.forEach(l => {
+        if (l.match(/克|ml|勺|个|片/)) ingredients.push(l);
+        else steps.push(l);
       });
-    });
-    return flow;
-  }, [sections, ingredientGroups, menuTitle, menuSubtitle]);
 
-  const speak = (text) => {
-    if ('speechSynthesis' in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = 1; utterance.pitch = 1; utterance.lang = 'zh-CN';
-      window.speechSynthesis.speak(utterance);
-    }
-  };
+      const out = document.getElementById("output");
+      out.innerHTML = `
+        <div class="card">
+          <h1>${title}</h1>
+          <p class="muted">解析生成 · 手机可用</p>
 
-  const parseTextToMenu = () => {
-    if (!rawText.trim()) return;
-    const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
-    let newTitle = ''; let newSubtitle = ''; let newIngredientGroups = []; let newTips = []; let newSections = [];
-    let currentSection = { id: generateId(), title: '步骤', items: [] };
-    let parseState = 'UNKNOWN'; let currentIngCategory = '清单'; 
-    if (lines.length > 0) {
-      const firstLine = lines[0];
-      if (firstLine.length < 20 && !/[:：]/.test(firstLine)) {
-        newTitle = firstLine.replace(/^[^a-zA-Z0-9\u4e00-\u9fa5]+/, '').trim(); lines.shift();
-        let descriptionLines = [];
-        while (lines.length > 0) {
-          const nextLine = lines[0];
-          if (/^(🛒|🧂|🥬|🥩|食材|主料|配料|调料|👨‍🍳|🍳|🔥|做法|步骤|制作|💡|⚠️|❗️|小贴士|注意|提示)/.test(nextLine)) break;
-          if (/^(步骤|Step|\d+\.)/.test(nextLine)) break;
-          descriptionLines.push(lines.shift());
-        }
-        newSubtitle = descriptionLines.join('\n');
-      }
-    }
-    lines.forEach(line => {
-      if (/^(🛒|🧂|🥬|🥩|食材|主料|配料|调料)/.test(line)) {
-        parseState = 'INGREDIENTS';
-        if (!line.includes('：') && !line.includes(':')) {
-           const catMatch = line.match(/^(🛒|🧂|🥬|🥩)?\s*(.*)/);
-           if (catMatch && catMatch[2]) currentIngCategory = catMatch[2].replace(/准备|清单/g, '') || '清单';
-           return;
-        }
-      }
-      if (/^(👨‍🍳|🍳|🔥|做法|步骤|制作)/.test(line)) {
-        parseState = 'STEPS';
-        if (currentSection.items.length > 0) {
-          newSections.push(currentSection);
-          currentSection = { id: generateId(), title: line.replace(/^[👨‍🍳|🍳|🔥]\s*/, ''), items: [] };
-        }
-        return;
-      }
-      if (/^(💡|⚠️|❗️|小贴士|注意|提示)/.test(line)) { parseState = 'TIPS'; return; }
-      if (parseState === 'INGREDIENTS') {
-        const prefixMatch = line.match(/^([^:：]+)[:：](.*)/);
-        let category = currentIngCategory; let content = line;
-        if (prefixMatch) { category = prefixMatch[1].trim(); content = prefixMatch[2].trim(); }
-        const parts = content.split(/(\s{2,}| \+ |，)/).map(s => s.trim()).filter(s => s && s.length > 1 && s !== '+' && s !== '，');
-        let group = newIngredientGroups.find(g => g.category === category);
-        if (!group) { group = { category, items: [] }; newIngredientGroups.push(group); }
-        group.items.push(...parts);
-      } else if (parseState === 'TIPS') { newTips.push(line.replace(/^[;；。.]/, '')); }
-      else {
-        const heatTimeRegex = /(大火|中火|小火|微火|猛火|文火|转.*?火|[0-9一二三]+秒|[0-9一二三]+分钟|[0-9]+min|油温.*?成热)/g;
-        const matches = line.match(heatTimeRegex);
-        const heatInfo = matches ? matches.join(' ') : ''; 
-        let name = ''; let desc = line;
-        const colonMatch = line.match(/^([^:：]+)[:：](.*)/);
-        if (colonMatch) { name = colonMatch[1].trim(); desc = colonMatch[2].trim(); }
-        else if (line.length <= 10) { name = line; desc = ''; }
-        currentSection.items.push({ id: generateId(), name: name, price: heatInfo, desc: desc });
-      }
-    });
-    if (currentSection.items.length > 0) newSections.push(currentSection);
-    if (newTitle) setMenuTitle(newTitle);
-    if (newSubtitle) setMenuSubtitle(newSubtitle);
-    if (newIngredientGroups.length > 0) setIngredientGroups(newIngredientGroups);
-    if (newTips.length > 0) setTips(newTips);
-    if (newSections.length > 0) setSections(newSections);
-  };
+          <h2>🛒 备料清单</h2>
+          <ul>${ingredients.map(i => `<li>${i}</li>`).join("")}</ul>
 
-  const startCooking = () => {
-    if (cookingFlow.length > 0) { setCurrentStepIndex(0); setIsCooking(true); setShowIngredientsModal(false); setShowTipsModal(false); }
-  };
-
-  const handleTimerComplete = () => { if (navigator.vibrate) navigator.vibrate([500, 200, 500]); speak("大厨，火候到了！"); };
-
-  const currentTheme = THEMES[currentThemeKey] || THEMES.emerald;
-  const currentStep = cookingFlow[currentStepIndex] || {};
-
-  return (
-    <div className="min-h-screen bg-stone-100 text-stone-800 flex flex-col md:flex-row font-sans h-screen overflow-hidden">
-      
-      {/* 左侧编辑器 */}
-      {!isCooking && (
-        <div className="w-full md:w-1/3 p-6 bg-white shadow-xl z-10 overflow-y-auto border-r border-stone-200 h-full relative">
-          <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Sword size={120} /></div>
-          <div className="mb-8 relative z-10">
-            <h1 className="text-3xl font-black italic transform -skew-x-12 bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-amber-700 mb-6 flex items-center gap-2">
-              <span className="text-4xl not-italic">📖</span> 秘籍录入
-            </h1>
-            <div className="bg-stone-900 text-stone-300 p-5 rounded-2xl mb-6 border-b-4 border-amber-800 shadow-inner">
-              <label className="text-xs font-bold text-amber-500 mb-2 flex items-center gap-1 uppercase tracking-widest"><Scroll size={14} /> 粘贴原文</label>
-              <textarea className="w-full h-32 p-3 text-xs bg-stone-800 border border-stone-700 rounded-lg text-stone-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors mb-4 resize-none font-mono" placeholder="粘贴秘籍，例如：红烧肉..." value={rawText} onChange={(e) => setRawText(e.target.value)}></textarea>
-              <button onClick={parseTextToMenu} className="w-full bg-gradient-to-br from-amber-600 to-amber-800 text-white font-bold py-3 rounded-xl text-sm hover:from-amber-500 hover:to-amber-700 shadow-lg transform active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2"><Sparkles size={16} /> 参悟秘籍</button>
-            </div>
-            <div className="space-y-4 border-b pb-6 mb-6">
-               <input value={menuTitle} onChange={e => setMenuTitle(e.target.value)} className="w-full font-bold text-2xl border-b-2 border-transparent hover:border-stone-200 focus:border-amber-600 outline-none bg-transparent transition-all" placeholder="菜名" />
-               <textarea value={menuSubtitle} onChange={e => setMenuSubtitle(e.target.value)} className="w-full text-sm text-stone-500 border-b border-transparent hover:border-stone-200 focus:border-amber-600 outline-none resize-none h-16 bg-transparent" placeholder="简介..." />
-            </div>
-            <div className="space-y-4">
-              <h3 className="font-bold text-stone-700 text-xs flex gap-1 uppercase tracking-widest items-center"><Utensils size={14} /> 招式预览</h3>
-              {sections.map(section => (
-                <div key={section.id} className="bg-stone-50 p-4 rounded-xl border border-stone-200 shadow-sm">
-                  <div className="flex justify-between mb-3 border-b border-stone-200 pb-2">
-                    <input className="font-bold text-sm bg-transparent outline-none w-full text-stone-800" value={section.title} onChange={e => setSections(prev => prev.map(s => s.id === section.id ? {...s, title: e.target.value} : s))} />
-                  </div>
-                  <div className="space-y-3 pl-3 border-l-2 border-amber-300 ml-1">
-                    {section.items.map((item, idx) => (
-                      <div key={item.id} className="text-sm flex gap-2 items-center">
-                        <span className="text-xs text-amber-700 font-bold w-4">{idx+1}.</span>
-                        <span className="font-bold text-stone-700 flex-1 truncate">{item.name || '未命名'}</span>
-                        <span className="text-amber-600 text-xs font-mono">{item.price}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <h2>👨‍🍳 修炼步骤</h2>
+          <ol>${steps.map(s => `<li>${s}</li>`).join("")}</ol>
         </div>
-      )}
-
-      {/* 修炼/预览模式 */}
-      <div className={`flex-1 overflow-y-auto relative flex flex-col items-center ${isCooking ? currentTheme.cook.bg : 'bg-stone-100 p-4 md:p-8'}`}>
-        {!isCooking && cookingFlow.length > 0 && (
-          <div className="sticky top-0 z-20 mb-6 flex gap-3 w-full max-w-2xl justify-end">
-             <button onClick={startCooking} className="bg-stone-900 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-3 hover:scale-105 transition-all font-bold animate-pulse ring-8 ring-stone-900/10"><PlayCircle size={24} /> 开始修炼</button>
-          </div>
-        )}
-
-        {isCooking && (
-          <div className={`fixed inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-full animate-in fade-in duration-500`}>
-            {/* 顶栏 */}
-            <div className={`flex justify-between items-center p-4 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0`}>
-              <div className="flex items-center gap-3">
-                 <button onClick={() => setIsCooking(false)} className="p-2 rounded-full hover:bg-white/10"><X size={24} /></button>
-                 <div className="flex flex-col">
-                   <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-50">第 {currentStepIndex + 1} / {cookingFlow.length} 步</span>
-                   <span className="font-bold truncate max-w-[150px] text-xs opacity-90">{currentStep.sectionTitle}</span>
-                 </div>
-              </div>
-              <div className="flex gap-2">
-                 <button onClick={() => setShowThemeModal(!showThemeModal)} className="px-4 py-2 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 flex items-center gap-2"><Palette size={14} /> 流派</button>
-                 <button onClick={() => setShowIngredientsModal(true)} className={`px-4 py-2 rounded-full text-xs font-bold transition-all bg-white/10 hover:bg-white/20 flex items-center gap-2`}><ShoppingCart size={14} /> 查料</button>
-              </div>
-            </div>
-
-            {/* 查料模态框 */}
-            {showIngredientsModal && (
-              <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowIngredientsModal(false)}></div>
-                <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-3xl p-8 shadow-2xl w-full max-w-2xl relative animate-in zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col`}>
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className={`text-2xl font-black ${currentTheme.cook.accentText} flex items-center gap-3`}><ShoppingCart size={28}/> 当前备料清单</h3>
-                    <button onClick={() => setShowIngredientsModal(false)} className="p-2 hover:bg-white/10 rounded-full"><X size={24}/></button>
-                  </div>
-                  <div className="overflow-y-auto custom-scrollbar flex-1 pr-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {ingredientGroups.map((group, gIdx) => (
-                        <div key={gIdx}>
-                          <h4 className="text-xs font-bold opacity-40 uppercase tracking-widest mb-3">{group.category}</h4>
-                          <div className="space-y-2">
-                            {group.items.map((ing, i) => (
-                              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                                <div className={`w-1.5 h-1.5 rounded-full ${currentTheme.cook.progress}`}></div>
-                                <span className="text-lg font-medium">{ing}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* 换肤弹窗 */}
-            {showThemeModal && (
-              <div className="absolute top-[75px] right-4 z-50 animate-in zoom-in-95 origin-top-right">
-                <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-2xl p-4 shadow-2xl flex flex-col gap-2 min-w-[160px]`}>
-                   {Object.entries(THEMES).map(([key, t]) => (
-                     <button key={key} onClick={() => { setCurrentThemeKey(key); setShowThemeModal(false); }} className={`text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-colors hover:bg-white/10 ${currentThemeKey === key ? currentTheme.cook.accentText : ''}`}>
-                       <div className={`w-3 h-3 rounded-full ${t.cook.progress}`}></div>{t.name}
-                     </button>
-                   ))}
-                </div>
-              </div>
-            )}
-
-            <div className={`w-full h-1.5 ${currentTheme.cook.card} shrink-0`}>
-              <div className={`${currentTheme.cook.progress} h-1.5 transition-all duration-500`} style={{ width: `${((currentStepIndex + 1) / cookingFlow.length) * 100}%` }}></div>
-            </div>
-
-            {/* 内容区 */}
-            <div className="flex-1 flex flex-col p-6 overflow-hidden relative justify-center">
-              <div className="w-full mx-auto flex flex-col h-full max-w-4xl items-center justify-center">
-                
-                {currentStep.type === 'INTRO' && (
-                  <div className="text-center space-y-8 animate-in zoom-in-95 duration-700">
-                    <BookOpen size={64} className={currentTheme.cook.accentText} />
-                    <h1 className="text-6xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-stone-500">{currentStep.name}</h1>
-                    <p className="text-xl md:text-3xl font-light italic opacity-60 max-w-2xl mx-auto whitespace-pre-line">“{currentStep.desc}”</p>
-                  </div>
-                )}
-
-                {currentStep.type === 'PREP' && (
-                  <div className="w-full flex flex-col h-full max-h-[80vh] animate-in slide-in-from-bottom-8">
-                    <div className="mb-8 text-center">
-                      <h2 className="text-4xl font-black mb-2 flex items-center justify-center gap-3"><ShoppingCart size={32} /> 备料阶段</h2>
-                      <p className="opacity-50 italic">请确认所有食材已就位</p>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {ingredientGroups.map((group, gIdx) => (
-                          <div key={gIdx} className={`${currentTheme.cook.card} p-6 rounded-3xl border ${currentTheme.cook.border}`}>
-                            <h3 className={`text-xs font-bold ${currentTheme.cook.accentText} uppercase mb-4`}>{group.category}</h3>
-                            <div className="space-y-3">
-                              {group.items.map((ing, i) => (
-                                <div key={i} className="flex items-center gap-4 text-lg p-3 rounded-xl bg-white/5"><div className={`w-2 h-2 rounded-full ${currentTheme.cook.progress}`}></div><span className="font-medium">{ing}</span></div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  </div>
-                )}
-
-                {currentStep.type === 'STEP' && (
-                  <div className="flex flex-col md:flex-row gap-8 h-full w-full items-center justify-center animate-in fade-in">
-                    {currentStep.price && <div className="shrink-0 flex items-center"><HeatDisplay heatText={currentStep.price} /></div>}
-                    <div className={`${currentTheme.cook.card} flex-1 w-full max-w-2xl rounded-[3rem] p-10 shadow-2xl border ${currentTheme.cook.border} relative flex flex-col h-auto max-h-[70vh] justify-between transition-all overflow-hidden`}>
-                      <div className="relative z-10">
-                        <div className="flex justify-between items-center mb-6">
-                          <span className={`px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase border border-white/10 bg-white/5 ${currentTheme.cook.accentText}`}>{currentStep.sectionTitle}</span>
-                        </div>
-                        <h2 className="text-4xl md:text-5xl font-black mb-6 leading-tight">{currentStep.name || `招式 ${currentStepIndex}`}</h2>
-                        <div className="h-px w-full bg-gradient-to-r from-white/20 to-transparent mb-6"></div>
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center py-4 relative z-10">
-                        <p className="text-2xl md:text-3xl opacity-90 leading-relaxed font-light">{currentStep.desc}</p>
-                        {currentStep.timerSeconds > 0 && <Timer key={currentStepIndex} initialSeconds={currentStep.timerSeconds} onComplete={handleTimerComplete} colorClass={currentTheme.cook.accentText} />}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* 导航 */}
-            <div className={`p-6 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 shrink-0`}>
-              <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-5 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={32} /></button>
-              <button onClick={currentStepIndex === cookingFlow.length - 1 ? () => setIsCooking(false) : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[4] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-5 rounded-3xl font-black text-xl md:text-2xl transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 ring-4 ring-white/10`}>
-                {currentStepIndex === cookingFlow.length - 1 ? '修炼完成' : (currentStep.type === 'INTRO' ? '查看备料' : (currentStep.type === 'PREP' ? '开始修炼' : '下一式'))}
-                {currentStepIndex !== cookingFlow.length - 1 && <ChevronRight size={28} />}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* 默认预览：优化了备料清单的显示 */}
-        {!isCooking && (
-          <div className="w-full max-w-2xl h-full">
-             {menuTitle ? (
-               <div className={`w-full min-h-[1000px] p-12 md:p-20 shadow-2xl relative bg-white transition-all transform scale-95 origin-top rounded-lg ${currentTheme.preview.text} ${currentTheme.preview.bg}`}>
-                 <div className={`w-full flex justify-between items-end border-b-4 ${currentTheme.preview.border} pb-10 mb-10`}>
-                    <div className="space-y-4">
-                      <div className="inline-block px-3 py-1 bg-stone-800 text-white text-[10px] font-black uppercase tracking-[0.3em]">秘籍卷轴</div>
-                      <h1 className="text-6xl font-black tracking-tighter">{menuTitle}</h1>
-                      <p className="opacity-70 text-xl italic leading-relaxed border-l-4 border-amber-500 pl-6">{menuSubtitle}</p>
-                    </div>
-                    <div className="opacity-10"><ChefHat size={120}/></div>
-                 </div>
-
-                 {/* 优化后的备料清单：一料一行 */}
-                 {ingredientGroups.length > 0 && (
-                   <div className="mb-12 p-8 rounded-3xl border bg-stone-50/50 border-stone-200">
-                     <h3 className="font-black mb-8 flex items-center gap-3 text-sm uppercase tracking-widest text-amber-800 border-b border-stone-200 pb-4"><ShoppingCart size={20} /> 备料清单</h3>
-                     <div className="space-y-10">
-                        {ingredientGroups.map((group, gIdx) => (
-                            <div key={gIdx}>
-                                 <h4 className="text-[10px] font-black opacity-40 uppercase mb-4 tracking-widest flex items-center gap-2">
-                                   <Layers size={12} /> {group.category}
-                                 </h4>
-                                 <div className="flex flex-col gap-1">
-                                    {group.items.map((ing, i) => (
-                                      <div key={i} className="flex items-center gap-4 py-3 border-b border-stone-100 border-dashed last:border-0">
-                                         <div className="w-1.5 h-1.5 rounded-full bg-stone-300"></div>
-                                         <span className="text-base font-medium opacity-80">{ing}</span>
-                                      </div>
-                                    ))}
-                                 </div>
-                            </div>
-                        ))}
-                     </div>
-                   </div>
-                 )}
-
-                 <div className="space-y-12">
-                   {sections.map((section, sIdx) => (
-                     <div key={section.id}>
-                        <h3 className="flex items-center gap-4 font-black text-2xl mb-6"><span className="bg-stone-800 text-white w-10 h-10 rounded-2xl flex items-center justify-center text-sm">{sIdx + 1}</span>{section.title}</h3>
-                        <div className="grid grid-cols-1 gap-6 pl-5 border-l-2 border-stone-200 ml-5">
-                          {section.items.map((item, idx) => (
-                            <div key={item.id} className="relative pb-6 last:pb-0">
-                              <div className="flex justify-between items-baseline mb-2">
-                                 <h4 className="font-black text-lg opacity-90">{item.name || `第 ${idx+1} 招`}</h4>
-                                 {item.price && <span className={`text-[10px] font-black px-3 py-1 rounded-full flex items-center gap-1 ${currentTheme.preview.badge}`}>{item.price}</span>}
-                              </div>
-                              <p className="text-base opacity-70 leading-relaxed font-light">{item.desc}</p>
-                            </div>
-                          ))}
-                        </div>
-                     </div>
-                   ))}
-                 </div>
-              </div>
-             ) : (
-               <div className="flex flex-col items-center justify-center h-full text-stone-400 opacity-40">
-                  <Scroll size={80} className="text-stone-300 mb-6" />
-                  <h3 className="text-2xl font-black uppercase tracking-widest">请参悟并录入秘籍</h3>
-               </div>
-             )}
-          </div>
-        )}
-      </div>
-
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 5px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-      `}</style>
-    </div>
-  );
-}
+      `;
+    }
+  </script>
+</body>
+</html>
