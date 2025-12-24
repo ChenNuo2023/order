@@ -24,6 +24,16 @@
                     screens: {
                         'landscape': {'raw': '(orientation: landscape)'},
                         'short': {'raw': '(max-height: 500px)'}
+                    },
+                    animation: {
+                        'level-up': 'levelUp 1s ease-out forwards',
+                    },
+                    keyframes: {
+                        levelUp: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '50%': { transform: 'scale(1.2)', opacity: '1' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
                     }
                 }
             }
@@ -78,7 +88,7 @@
             Flame, Utensils, PlayCircle, X, ChevronLeft, ChevronRight, 
             CheckCircle, ShoppingCart, Lightbulb, Clock, Play, Pause, RotateCcw,
             Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen, Star,
-            History, Save, Camera, Download, Share2
+            History, Save, Camera, Download, Share2, Award, Zap, AlertTriangle
         } from 'lucide-react';
 
         // --- 样式配置中心 ---
@@ -125,13 +135,86 @@
             }
         };
 
+        // --- 升级系统配置 (经验值拉长) ---
+        const LEVELS = [
+            { name: '入灶期', desc: '初识烟火，锅铲为伴', max: 50 },
+            { name: '引火期', desc: '掌控火候，渐入佳境', max: 150 },
+            { name: '感味期', desc: '百味入魂，舌尖通灵', max: 300 },
+            { name: '聚锅期', desc: '万物皆可入锅，自成一派', max: 500 },
+            { name: '调味筑基期', desc: '五味调和，根基深厚', max: 800 },
+            { name: '心法成型期', desc: '食谱在心，随手拈来', max: 1200 },
+            { name: '招式小成期', desc: '刀工火候，皆有法度', max: 1700 },
+            { name: '领域展开期', desc: '厨房之内，唯我独尊', max: 2300 },
+            { name: '厨师境·一派之主', desc: '开宗立派，威震一方', max: 3000 },
+            { name: '厨圣境·行走人间', desc: '返璞归真，食为天道', max: 4000 },
+            { name: '厨道大圆满', desc: '超凡入圣，与食俱进', max: Infinity }
+        ];
+
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
 
+        // 经验和等级详情弹窗
+        const LevelModal = ({ totalXP, onClose, onReset }) => {
+            let accumulatedXP = 0;
+            const currentLevelIdx = LEVELS.findIndex((l, i) => {
+                const isCurrent = (l.max === Infinity) || (totalXP < accumulatedXP + l.max);
+                if (!isCurrent) accumulatedXP += l.max;
+                return isCurrent;
+            });
+
+            return (
+                <div className="fixed inset-0 z-[80] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-stone-900 border border-stone-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+                        <div className="p-5 border-b border-stone-700 flex justify-between items-center bg-stone-950">
+                            <h3 className="text-xl font-bold text-amber-500 flex items-center gap-2"><Award size={24}/> 厨道境界</h3>
+                            <button onClick={onClose} className="p-2 hover:bg-stone-800 rounded-full text-stone-400"><X size={20}/></button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
+                            <div className="text-center py-4">
+                                <div className="text-stone-400 text-sm mb-1">当前总经验</div>
+                                <div className="text-4xl font-black text-white font-mono">{totalXP}</div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {LEVELS.map((level, idx) => {
+                                    const isPast = idx < currentLevelIdx;
+                                    const isCurrent = idx === currentLevelIdx;
+                                    return (
+                                        <div key={idx} className={`p-4 rounded-xl border ${isCurrent ? 'bg-amber-900/30 border-amber-500/50' : 'bg-stone-800/50 border-stone-700/50'} ${isPast ? 'opacity-50' : ''}`}>
+                                            <div className="flex justify-between items-baseline mb-1">
+                                                <span className={`font-bold ${isCurrent ? 'text-amber-400' : 'text-stone-300'}`}>{level.name}</span>
+                                                <span className="text-xs font-mono text-stone-500">{level.max === Infinity ? '∞' : level.max} XP</span>
+                                            </div>
+                                            <p className="text-xs text-stone-500">{level.desc}</p>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-stone-700 bg-stone-950">
+                            <button 
+                                onClick={() => {
+                                    if(window.confirm('确定要自废武功，重置所有修仙等级和经验吗？此操作不可逆！')) {
+                                        onReset();
+                                        onClose();
+                                    }
+                                }}
+                                className="w-full py-3 rounded-xl border border-red-900/50 text-red-500/70 hover:bg-red-900/20 hover:text-red-400 text-sm font-bold flex items-center justify-center gap-2 transition-all"
+                            >
+                                <AlertTriangle size={16}/> 重废武功 (重置等级)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // 打卡生成组件
-        const CheckInCard = ({ menuTitle, onClose, theme }) => {
+        const CheckInCard = ({ menuTitle, onClose, theme, onGainXP }) => {
             const canvasRef = useRef(null);
             const [imageSrc, setImageSrc] = useState(null);
-            const [isGenerating, setIsGenerating] = useState(false);
+            const [xpAwarded, setXpAwarded] = useState(false);
 
             const handleFileChange = (e) => {
                 const file = e.target.files[0];
@@ -139,6 +222,11 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         setImageSrc(event.target.result);
+                        // 上传图片即奖励经验，仅一次
+                        if (!xpAwarded && onGainXP) {
+                            onGainXP(10); // 每次拍照打卡获得 10 经验
+                            setXpAwarded(true);
+                        }
                     };
                     reader.readAsDataURL(file);
                 }
@@ -152,90 +240,71 @@
                 img.src = imageSrc;
                 
                 img.onload = () => {
-                    // 设置画布尺寸（竖版海报）
                     const width = 1080;
-                    const height = 1440; // 4:3 稍微长一点
+                    const height = 1440;
                     canvas.width = width;
                     canvas.height = height;
 
-                    // 1. 绘制背景（纸张纹理色）
-                    ctx.fillStyle = '#f5f5f4'; // stone-100
+                    // 1. 背景
+                    ctx.fillStyle = '#f5f5f4';
                     ctx.fillRect(0, 0, width, height);
 
-                    // 2. 绘制用户图片（居中裁剪填充）
+                    // 2. 图片处理
                     const imgRatio = img.width / img.height;
-                    const canvasImgRatio = width / (width); // 图片区域正方形
+                    const canvasImgRatio = width / (width); 
                     
-                    let drawWidth, drawHeight, sx, sy;
-                    
-                    if (imgRatio > canvasImgRatio) {
-                        drawHeight = width;
-                        drawWidth = width * imgRatio;
-                        sx = (drawWidth - width) / 2;
-                        sy = 0;
-                    } else {
-                        drawWidth = width;
-                        drawHeight = width / imgRatio;
-                        sx = 0;
-                        sy = (drawHeight - width) / 2;
-                    }
-                    
-                    // 图片区域留白
                     const padding = 60;
                     const imgSize = width - (padding * 2);
                     
-                    // 绘制图片阴影
                     ctx.shadowColor = "rgba(0, 0, 0, 0.2)";
                     ctx.shadowBlur = 30;
                     ctx.shadowOffsetX = 10;
                     ctx.shadowOffsetY = 10;
                     
-                    // 绘制图片
-                    // 计算裁剪
                     let sourceX, sourceY, sourceW, sourceH;
-                    if (img.width / img.height > 1) { // 横图
+                    if (img.width / img.height > 1) { 
                          sourceH = img.height;
                          sourceW = img.height;
                          sourceX = (img.width - img.height) / 2;
                          sourceY = 0;
-                    } else { // 竖图
+                    } else { 
                          sourceW = img.width;
                          sourceH = img.width;
                          sourceX = 0;
                          sourceY = (img.height - img.width) / 2;
                     }
 
+                    // 绘制图片
                     ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, padding, padding + 100, imgSize, imgSize);
                     
-                    // 重置阴影
                     ctx.shadowColor = "transparent";
 
-                    // 3. 绘制文字装饰
-                    ctx.fillStyle = '#1c1917'; // stone-900
+                    // 3. 文字装饰 - 坐标修正，下移防止重叠
+                    ctx.fillStyle = '#1c1917'; 
                     ctx.textAlign = 'center';
                     
                     // 顶部标题
                     ctx.font = 'bold 50px "Noto Serif SC", serif';
-                    ctx.fillStyle = '#78350f'; // amber-900
+                    ctx.fillStyle = '#78350f'; 
                     ctx.fillText('绝世食谱 · 每日一练', width / 2, 80);
 
-                    // 菜名
+                    // 菜名 - 下移到 height - 180
                     ctx.font = 'bold 90px "Noto Serif SC", serif';
                     ctx.fillStyle = '#1c1917';
-                    ctx.fillText(menuTitle, width / 2, height - 250);
+                    ctx.fillText(menuTitle, width / 2, height - 180);
 
-                    // 日期
+                    // 日期 - 下移到 height - 100
                     const date = new Date();
                     const dateStr = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
                     ctx.font = '40px sans-serif';
-                    ctx.fillStyle = '#78716c'; // stone-500
-                    ctx.fillText(dateStr, width / 2, height - 160);
+                    ctx.fillStyle = '#78716c'; 
+                    ctx.fillText(dateStr, width / 2, height - 100);
 
-                    // 4. 绘制印章 (模拟)
+                    // 4. 印章
                     ctx.save();
                     ctx.translate(width - 180, height - 180);
                     ctx.rotate(-15 * Math.PI / 180);
-                    ctx.fillStyle = 'rgba(220, 38, 38, 0.8)'; // red-600
+                    ctx.fillStyle = 'rgba(220, 38, 38, 0.8)';
                     ctx.strokeStyle = 'rgba(220, 38, 38, 0.8)';
                     ctx.lineWidth = 8;
                     ctx.beginPath();
@@ -288,8 +357,13 @@
                                 </div>
                             ) : (
                                 <div className="w-full h-full flex flex-col">
-                                    <div className="flex-1 overflow-auto custom-scrollbar flex items-center justify-center bg-stone-900/50 rounded-lg mb-4">
+                                    <div className="flex-1 overflow-auto custom-scrollbar flex items-center justify-center bg-stone-900/50 rounded-lg mb-4 relative">
                                         <canvas ref={canvasRef} className="max-h-full max-w-full shadow-2xl rounded-sm"></canvas>
+                                        {xpAwarded && (
+                                            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-stone-900 px-4 py-2 rounded-full font-bold shadow-lg animate-bounce flex items-center gap-2 z-10">
+                                                <Zap size={16} fill="currentColor" /> 经验 +10
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex gap-3 shrink-0">
                                         <label className="flex-1 bg-stone-700 text-white py-3 rounded-xl font-bold text-center cursor-pointer hover:bg-stone-600">
@@ -308,7 +382,7 @@
             );
         };
 
-        // 倒计时组件 - 字体加大
+        // 倒计时组件
         const Timer = ({ initialSeconds, onComplete, colorClass }) => {
             const [seconds, setSeconds] = useState(initialSeconds);
             const [isActive, setIsActive] = useState(false);
@@ -461,25 +535,66 @@
             const [showIngredientsModal, setShowIngredientsModal] = useState(false);
             const [showTipsModal, setShowTipsModal] = useState(false);
             const [showThemeModal, setShowThemeModal] = useState(false);
+            const [showLevelModal, setShowLevelModal] = useState(false); // 新增等级弹窗控制
             const [menuTitle, setMenuTitle] = useState('');
             const [menuSubtitle, setMenuSubtitle] = useState('');
             const [ingredientGroups, setIngredientGroups] = useState([]);
             const [sections, setSections] = useState([]);
             const [tips, setTips] = useState([]);
             const [savedMenus, setSavedMenus] = useState([]);
-            const [showCheckIn, setShowCheckIn] = useState(false); // 打卡弹窗状态
+            const [showCheckIn, setShowCheckIn] = useState(false); 
+            
+            // 经验值系统 State
+            const [totalXP, setTotalXP] = useState(0);
 
-            // 加载历史记录
+            // 加载历史记录和经验值
             useEffect(() => {
                 try {
-                    const saved = localStorage.getItem('cooking_master_menus');
-                    if (saved) {
-                        setSavedMenus(JSON.parse(saved));
+                    const savedMenus = localStorage.getItem('cooking_master_menus');
+                    if (savedMenus) {
+                        setSavedMenus(JSON.parse(savedMenus));
+                    }
+                    const savedXP = localStorage.getItem('cooking_master_xp');
+                    if (savedXP) {
+                        setTotalXP(parseInt(savedXP, 10));
                     }
                 } catch (e) {
-                    console.error("Failed to load history", e);
+                    console.error("Failed to load data", e);
                 }
             }, []);
+
+            // 计算当前等级信息
+            const getCurrentLevelInfo = (xp) => {
+                let accumulatedXP = 0;
+                for (let i = 0; i < LEVELS.length; i++) {
+                    const level = LEVELS[i];
+                    // 如果是最后一级（无限）或者当前经验小于下一级门槛
+                    if (level.max === Infinity || xp < accumulatedXP + level.max) {
+                        return {
+                            ...level,
+                            currentLevelXP: xp - accumulatedXP,
+                            nextLevelXP: level.max
+                        };
+                    }
+                    accumulatedXP += level.max;
+                }
+                return LEVELS[LEVELS.length - 1]; // Fallback
+            };
+
+            const currentLevel = getCurrentLevelInfo(totalXP);
+
+            // 增加经验值
+            const handleGainXP = (amount) => {
+                const newXP = totalXP + amount;
+                setTotalXP(newXP);
+                localStorage.setItem('cooking_master_xp', newXP.toString());
+            };
+
+            // 重置经验值
+            const handleResetXP = () => {
+                setTotalXP(0);
+                localStorage.removeItem('cooking_master_xp');
+            };
 
             // 保存历史记录的函数
             const saveMenuToHistory = (title, subtitle, ingredients, secs, currentTips) => {
@@ -653,13 +768,38 @@
                     {/* 编辑区 - 针对iPad优化布局 */}
                     {!isCooking && (
                         <div className="w-full md:w-[400px] lg:w-[450px] bg-white shadow-xl z-20 border-b md:border-r border-stone-200 h-[45vh] md:h-full relative flex flex-col shrink-0">
-                            {/* 1. 每日一练 大标题 - 优化顶部安全距离，增加 pt-14 */}
-                            <div className="pt-14 pb-4 px-4 md:p-6 bg-stone-900 text-amber-500 shrink-0 shadow-lg z-20">
-                                <div className="flex items-center gap-3 mb-1">
-                                    <Star className="fill-amber-500 animate-pulse" size={20}/>
-                                    <h2 className="text-xl md:text-2xl font-black tracking-widest uppercase">每日一练 · 终成厨圣</h2>
+                            {/* 1. 每日一练 大标题 & 等级展示 */}
+                            <div className="pt-14 pb-4 px-4 md:p-6 bg-stone-900 text-stone-200 shrink-0 shadow-lg z-20">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Star className="fill-amber-500 text-amber-500 animate-pulse" size={20}/>
+                                            <h2 className="text-xl md:text-2xl font-black tracking-widest text-amber-500 uppercase">每日一练 · 终成厨圣</h2>
+                                        </div>
+                                        <p className="text-xs md:text-sm text-stone-400 opacity-80 pl-8">唯有美食与爱不可辜负</p>
+                                    </div>
                                 </div>
-                                <p className="text-xs md:text-sm text-stone-400 opacity-80 pl-8">唯有美食与爱不可辜负</p>
+
+                                {/* 等级卡片 - 点击查看详情 */}
+                                <div 
+                                    onClick={() => setShowLevelModal(true)} 
+                                    className="bg-stone-800 rounded-xl p-3 border border-stone-700 cursor-pointer hover:bg-stone-700/80 transition-colors active:scale-95"
+                                >
+                                    <div className="flex justify-between items-center mb-2">
+                                        <span className="font-bold text-amber-400 text-lg">{currentLevel.name}</span>
+                                        <span className="text-xs font-mono text-stone-400">{currentLevel.max === Infinity ? '∞' : `${currentLevel.currentLevelXP} / ${currentLevel.nextLevelXP}`} XP</span>
+                                    </div>
+                                    <div className="w-full bg-stone-900 rounded-full h-2 mb-2 overflow-hidden">
+                                        <div 
+                                            className="bg-gradient-to-r from-amber-600 to-amber-400 h-2 rounded-full transition-all duration-1000" 
+                                            style={{ width: currentLevel.max === Infinity ? '100%' : `${(currentLevel.currentLevelXP / currentLevel.nextLevelXP) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                    <p className="text-xs text-stone-500 italic flex justify-between items-center">
+                                        <span>“{currentLevel.desc}”</span>
+                                        <span className="text-amber-500/50 text-[10px]">点击查看详情</span>
+                                    </p>
+                                </div>
                             </div>
 
                             <div className="overflow-y-auto custom-scrollbar flex-1 relative z-10 p-4 md:p-6">
@@ -737,6 +877,7 @@
                                         menuTitle={menuTitle} 
                                         onClose={() => {setShowCheckIn(false); setIsCooking(false);}} // 关闭打卡即结束烹饪
                                         theme={currentTheme}
+                                        onGainXP={handleGainXP} // 传递经验获取函数
                                     />
                                 )}
 
@@ -890,6 +1031,15 @@
                                     </button>
                                 </div>
                             </div>
+                        )}
+
+                        {/* 等级详情弹窗 */}
+                        {showLevelModal && (
+                            <LevelModal 
+                                totalXP={totalXP} 
+                                onClose={() => setShowLevelModal(false)} 
+                                onReset={handleResetXP}
+                            />
                         )}
 
                         {/* 编辑器的预览区 - iPad 和桌面可见 */}
