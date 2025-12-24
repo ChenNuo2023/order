@@ -2,16 +2,38 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <!-- 1. PWA 核心配置：沉浸式体验，禁止缩放，适配刘海屏 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="绝世食谱">
+    <meta name="theme-color" content="#1c1917"> <!-- 匹配深色背景 -->
+
     <title>绝世食谱 - 沉浸式烹饪助手</title>
     
-    <!-- 1. 引入 Tailwind CSS (样式框架) -->
+    <!-- 2. 古籍风格图标 (SVG Base64) -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzQ1MWEwMyIgcng9IjgwIi8+PHBhdGggZmlsbD0iI2Q0YTM3MyIgZD0iTTEwMCA4MGgzMTJ2MzUySDEwMHoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM1ZDQwMzciIHN0cm9rZS13aWR0aD0iMTYiIGQ9Ik0xNDAgODB2MzUyTTEwMCAxMzBoMzEyTTEwMCAyNTZoMzEyTTEwMCAzODJoMzEyIi8+PHBhdGggZmlsbD0iIzhkNTUyNCIgZD0iTTgwIDgwYTIwIDIwIDAgMCAwIDIwIDIwdjMxMmEyMCAyMCAwIDAgMS0yMCAyMHoiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjEzMCIgcj0iOCIgZmlsbD0iI2Q0YTM3MyIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iMjU2IiByPSI4IiBmaWxsPSIjZDRhMzczIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSIzODIiIHI9IjgiIGZmlsbD0iI2Q0YTM3MyIvPjx0ZXh0IHg9IjI1NiIgeT0iMjgwIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtc2l6ZT0iMTgwIiBmaWxsPSIjNWQ0MDM3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+e33po588L3RleHQ+PC9zdmc+">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgZmlsbD0iIzQ1MWEwMyIgcng9IjgwIi8+PHBhdGggZmlsbD0iI2Q0YTM3MyIgZD0iTTEwMCA4MGgzMTJ2MzUySDEwMHoiLz48cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiM1ZDQwMzciIHN0cm9rZS13aWR0aD0iMTYiIGQ9Ik0xNDAgODB2MzUyTTEwMCAxMzBoMzEyTTEwMCAyNTZoMzEyTTEwMCAzODJoMzEyIi8+PHBhdGggZmlsbD0iIzhkNTUyNCIgZD0iTTgwIDgwYTIwIDIwIDAgMCAwIDIwIDIwdjMxMmEyMCAyMCAwIDAgMS0yMCAyMHoiLz48Y2lyY2xlIGN4PSI5MCIgY3k9IjEzMCIgcj0iOCIgZmlsbD0iI2Q0YTM3MyIvPjxjaXJjbGUgY3g9IjkwIiBjeT0iMjU2IiByPSI4IiBmaWxsPSIjZDRhMzczIi8+PGNpcmNsZSBjeD0iOTAiIGN5PSIzODIiIHI9IjgiIGZmlsbD0iI2Q0YTM3MyIvPjx0ZXh0IHg9IjI1NiIgeT0iMjgwIiBmb250LWZhbWlseT0ic2VyaWYiIGZvbnQtc2l6ZT0iMTgwIiBmaWxsPSIjNWQ0MDM3IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXdlaWdodD0iYm9sZCI+e33po588L3RleHQ+PC9zdmc+">
+
+    <!-- 3. 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    screens: {
+                        'landscape': {'raw': '(orientation: landscape)'},
+                        'short': {'raw': '(max-height: 500px)'}
+                    }
+                }
+            }
+        }
+    </script>
     
-    <!-- 2. 引入 Babel (浏览器内编译 JSX) -->
+    <!-- 4. 引入 Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-    <!-- 3. 定义依赖映射 (让浏览器知道 react 从哪里加载) -->
+    <!-- 5. 依赖映射 -->
     <script type="importmap">
     {
         "imports": {
@@ -23,32 +45,28 @@
     </script>
 
     <style>
-        /* 全局样式微调 */
         body {
-            /* 禁止移动端点击高亮背景 */
             -webkit-tap-highlight-color: transparent;
-            /* 确保字体清晰 */
             -webkit-font-smoothing: antialiased;
+            overscroll-behavior-y: none; /* 防止橡皮筋效果影响APP质感 */
         }
-        /* 自定义滚动条 */
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
         
-        /* 隐藏 Chrome/Safari/Edge 的滚动条但保留功能 (可选，为了美观) */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
+        /* 隐藏滚动条但保留功能 */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* 底部安全区适配 (iPhone X+) */
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
         }
     </style>
 </head>
-<body class="bg-stone-100 overflow-hidden">
+<body class="bg-stone-100 overflow-hidden text-base md:text-lg">
     <div id="root"></div>
 
-    <!-- 4. React 代码逻辑 -->
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
         import { createRoot } from 'react-dom/client';
@@ -56,7 +74,7 @@
             Plus, Trash2, RefreshCw, ChefHat, Type, 
             Flame, Utensils, PlayCircle, X, ChevronLeft, ChevronRight, 
             CheckCircle, ShoppingCart, Lightbulb, Clock, Play, Pause, RotateCcw,
-            Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen
+            Layers, ArrowDown, Sparkles, Palette, Scroll, Sword, BookOpen, Star
         } from 'lucide-react';
 
         // --- 样式配置中心 ---
@@ -105,7 +123,7 @@
 
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2, 9);
 
-        // 倒计时组件
+        // 倒计时组件 - 字体加大
         const Timer = ({ initialSeconds, onComplete, colorClass }) => {
             const [seconds, setSeconds] = useState(initialSeconds);
             const [isActive, setIsActive] = useState(false);
@@ -146,28 +164,28 @@
             const progressColor = colorClass.replace('text-', 'bg-');
 
             return (
-                <div className="mt-6 w-full max-w-xs mx-auto">
-                    <div className="bg-black/30 rounded-2xl p-4 border border-white/10 relative overflow-hidden">
-                        <div className="absolute bottom-0 left-0 h-1 bg-white/10 w-full">
+                <div className="mt-8 w-full max-w-sm mx-auto">
+                    <div className="bg-black/30 rounded-3xl p-6 border border-white/10 relative overflow-hidden backdrop-blur-sm">
+                        <div className="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full">
                             <div className={`h-full transition-all duration-1000 ${progressColor}`} style={{ width: `${progress}%` }}></div>
                         </div>
                         
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={`p-2 rounded-full ${isActive ? `${colorClass} bg-white/10 animate-pulse` : 'text-gray-400 bg-white/5'}`}>
-                                    <Clock size={20} />
+                            <div className="flex items-center gap-4">
+                                <div className={`p-3 rounded-full ${isActive ? `${colorClass} bg-white/10 animate-pulse` : 'text-gray-400 bg-white/5'}`}>
+                                    <Clock size={28} />
                                 </div>
-                                <span className="text-3xl font-mono font-bold text-white tracking-wider">
+                                <span className="text-4xl md:text-5xl font-mono font-bold text-white tracking-widest shadow-black drop-shadow-lg">
                                     {formatTime(seconds)}
                                 </span>
                             </div>
                             
-                            <div className="flex gap-2">
-                                <button onClick={toggleTimer} className={`p-3 rounded-full transition-colors text-white ${isActive ? 'bg-yellow-600 hover:bg-yellow-500' : progressColor.replace('bg-', 'bg-') + ' hover:opacity-80'}`}>
-                                    {isActive ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" />}
+                            <div className="flex gap-3">
+                                <button onClick={toggleTimer} className={`p-4 rounded-full transition-colors text-white shadow-lg ${isActive ? 'bg-yellow-600 hover:bg-yellow-500' : progressColor.replace('bg-', 'bg-') + ' hover:opacity-80'}`}>
+                                    {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" />}
                                 </button>
-                                <button onClick={resetTimer} className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-gray-300">
-                                    <RotateCcw size={18} />
+                                <button onClick={resetTimer} className="p-4 rounded-full bg-white/10 hover:bg-white/20 text-gray-300">
+                                    <RotateCcw size={24} />
                                 </button>
                             </div>
                         </div>
@@ -212,7 +230,7 @@
 
             return (
                 <div style={{ transform: `scale(${c.scale})`, filter: c.glow, transition: 'transform 0.5s ease' }}>
-                    <svg width="40" height="50" viewBox="0 0 200 200" overflow="visible">
+                    <svg width="60" height="75" viewBox="0 0 200 200" overflow="visible">
                         <defs>
                             <linearGradient id={`fireGrad-${level}`} x1="0%" y1="100%" x2="0%" y2="0%">
                                 {c.gradientStops.map((stop, i) => (
@@ -243,9 +261,9 @@
             else if (/中火|Medium/.test(heatText)) { level = 2; label = heatText || "中火"; colorClass = 'text-orange-400'; }
             else if (/小火|文火|微火|Low/.test(heatText)) { level = 1; label = heatText || "小火"; colorClass = 'text-yellow-400'; }
             return (
-                <div className="flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-2 rounded-2xl border border-white/10 shadow-xl min-w-[80px] h-full">
+                <div className="flex flex-col items-center justify-center bg-black/60 backdrop-blur-md p-4 rounded-3xl border border-white/10 shadow-xl min-w-[100px]">
                     <AnimatedFlame level={level} />
-                    <span className={`text-xs font-bold ${colorClass} tracking-wider mt-2 uppercase text-center`}>{label}</span>
+                    <span className={`text-sm md:text-base font-bold ${colorClass} tracking-wider mt-2 uppercase text-center`}>{label}</span>
                 </div>
             );
         };
@@ -256,12 +274,10 @@
             const [isCooking, setIsCooking] = useState(false);
             const [currentStepIndex, setCurrentStepIndex] = useState(0);
             const [showIngredientsModal, setShowIngredientsModal] = useState(false);
-            const [showTipsModal, setShowTipsModal] = useState(false);
             const [showThemeModal, setShowThemeModal] = useState(false);
             const [menuTitle, setMenuTitle] = useState('');
             const [menuSubtitle, setMenuSubtitle] = useState('');
             const [ingredientGroups, setIngredientGroups] = useState([]);
-            const [tips, setTips] = useState([]);
             const [sections, setSections] = useState([]);
 
             // 构建烹饪流程
@@ -300,7 +316,7 @@
             const parseTextToMenu = () => {
                 if (!rawText.trim()) return;
                 const lines = rawText.split('\n').map(l => l.trim()).filter(l => l);
-                let newTitle = ''; let newSubtitle = ''; let newIngredientGroups = []; let newTips = []; let newSections = [];
+                let newTitle = ''; let newSubtitle = ''; let newIngredientGroups = []; let newSections = [];
                 let currentSection = { id: generateId(), title: '步骤', items: [] };
                 let parseState = 'UNKNOWN'; let currentIngCategory = '清单'; 
                 if (lines.length > 0) {
@@ -334,7 +350,7 @@
                         }
                         return;
                     }
-                    if (/^(💡|⚠️|❗️|小贴士|注意|提示)/.test(line)) { parseState = 'TIPS'; return; }
+                    if (/^(💡|⚠️|❗️|小贴士|注意|提示)/.test(line)) { return; } // Ignore tips line header for now
                     if (parseState === 'INGREDIENTS') {
                         const prefixMatch = line.match(/^([^:：]+)[:：](.*)/);
                         let category = currentIngCategory; let content = line;
@@ -343,8 +359,7 @@
                         let group = newIngredientGroups.find(g => g.category === category);
                         if (!group) { group = { category, items: [] }; newIngredientGroups.push(group); }
                         group.items.push(...parts);
-                    } else if (parseState === 'TIPS') { newTips.push(line.replace(/^[;；。.]/, '')); }
-                    else {
+                    } else {
                         const heatTimeRegex = /(大火|中火|小火|微火|猛火|文火|转.*?火|[0-9一二三]+秒|[0-9一二三]+分钟|[0-9]+min|油温.*?成热)/g;
                         const matches = line.match(heatTimeRegex);
                         const heatInfo = matches ? matches.join(' ') : ''; 
@@ -359,12 +374,11 @@
                 if (newTitle) setMenuTitle(newTitle);
                 if (newSubtitle) setMenuSubtitle(newSubtitle);
                 if (newIngredientGroups.length > 0) setIngredientGroups(newIngredientGroups);
-                if (newTips.length > 0) setTips(newTips);
                 if (newSections.length > 0) setSections(newSections);
             };
 
             const startCooking = () => {
-                if (cookingFlow.length > 0) { setCurrentStepIndex(0); setIsCooking(true); setShowIngredientsModal(false); setShowTipsModal(false); }
+                if (cookingFlow.length > 0) { setCurrentStepIndex(0); setIsCooking(true); setShowIngredientsModal(false); }
             };
 
             const handleTimerComplete = () => { if (navigator.vibrate) navigator.vibrate([500, 200, 500]); speak("大厨，火候到了！"); };
@@ -372,100 +386,85 @@
             const currentTheme = THEMES[currentThemeKey] || THEMES.emerald;
             const currentStep = cookingFlow[currentStepIndex] || {};
 
-            // 移动端高度修复：使用dvh而不是h-screen
             return (
-                <div className="min-h-[100dvh] h-[100dvh] bg-stone-100 text-stone-800 flex flex-col md:flex-row font-sans overflow-hidden">
+                <div className="h-[100dvh] w-full flex flex-col md:flex-row font-sans overflow-hidden">
                     
-                    {/* 左侧编辑器 - 移动端高度优化，允许内容滚动但容器不溢出 */}
+                    {/* 编辑区 - 针对iPad优化布局 */}
                     {!isCooking && (
-                        <div className="w-full md:w-1/3 p-4 md:p-6 bg-white shadow-xl z-10 border-b md:border-r border-stone-200 h-[40vh] md:h-full relative flex flex-col shrink-0">
-                            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none"><Sword size={120} /></div>
-                            
-                            {/* 标题栏 */}
-                            <div className="mb-2 md:mb-6 shrink-0 flex justify-between items-center">
-                                <h1 className="text-2xl md:text-3xl font-black italic transform -skew-x-12 bg-clip-text text-transparent bg-gradient-to-r from-stone-800 to-amber-700 flex items-center gap-2">
-                                    <span className="text-3xl md:text-4xl not-italic">📖</span> 秘籍录入
-                                </h1>
+                        <div className="w-full md:w-[400px] lg:w-[450px] bg-white shadow-xl z-20 border-b md:border-r border-stone-200 h-[45vh] md:h-full relative flex flex-col shrink-0">
+                            {/* 1. 每日一练 大标题 */}
+                            <div className="p-4 md:p-6 bg-stone-900 text-amber-500 shrink-0 shadow-lg z-20">
+                                <div className="flex items-center gap-3 mb-1">
+                                    <Star className="fill-amber-500 animate-pulse" size={20}/>
+                                    <h2 className="text-xl md:text-2xl font-black tracking-widest uppercase">每日一练 · 终成厨圣</h2>
+                                </div>
+                                <p className="text-xs md:text-sm text-stone-400 opacity-80 pl-8">唯有美食与爱不可辜负</p>
                             </div>
 
-                            {/* 滚动区域 */}
-                            <div className="overflow-y-auto custom-scrollbar flex-1 relative z-10 pr-2">
-                                <div className="bg-stone-900 text-stone-300 p-3 md:p-5 rounded-2xl mb-4 border-b-4 border-amber-800 shadow-inner">
-                                    <label className="text-xs font-bold text-amber-500 mb-2 flex items-center gap-1 uppercase tracking-widest"><Scroll size={14} /> 粘贴原文</label>
-                                    <textarea className="w-full h-20 md:h-32 p-3 text-xs bg-stone-800 border border-stone-700 rounded-lg text-stone-200 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors mb-4 resize-none font-mono" placeholder="粘贴秘籍，例如：红烧肉..." value={rawText} onChange={(e) => setRawText(e.target.value)}></textarea>
-                                    <button onClick={parseTextToMenu} className="w-full bg-gradient-to-br from-amber-600 to-amber-800 text-white font-bold py-2 md:py-3 rounded-xl text-xs md:text-sm hover:from-amber-500 hover:to-amber-700 shadow-lg transform active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2"><Sparkles size={16} /> 参悟秘籍</button>
+                            <div className="overflow-y-auto custom-scrollbar flex-1 relative z-10 p-4 md:p-6">
+                                <div className="bg-stone-100 p-4 rounded-2xl mb-6 border-2 border-stone-200">
+                                    <label className="text-sm font-bold text-stone-500 mb-2 flex items-center gap-2 uppercase tracking-widest"><Scroll size={16} /> 粘贴原文</label>
+                                    <textarea className="w-full h-24 md:h-40 p-3 text-base bg-white border border-stone-300 rounded-xl text-stone-800 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-colors mb-4 resize-none font-mono leading-relaxed" placeholder="在此粘贴食谱..." value={rawText} onChange={(e) => setRawText(e.target.value)}></textarea>
+                                    <button onClick={parseTextToMenu} className="w-full bg-stone-900 text-white font-bold py-3 md:py-4 rounded-xl text-sm md:text-base hover:bg-stone-800 shadow-lg transform active:scale-95 transition-all uppercase tracking-widest flex items-center justify-center gap-2"><Sparkles size={18} /> 参悟秘籍</button>
                                 </div>
-                                <div className="space-y-4 border-b pb-6 mb-6">
-                                    <input value={menuTitle} onChange={e => setMenuTitle(e.target.value)} className="w-full font-bold text-xl md:text-2xl border-b-2 border-transparent hover:border-stone-200 focus:border-amber-600 outline-none bg-transparent transition-all" placeholder="菜名" />
-                                    <textarea value={menuSubtitle} onChange={e => setMenuSubtitle(e.target.value)} className="w-full text-sm text-stone-500 border-b border-transparent hover:border-stone-200 focus:border-amber-600 outline-none resize-none h-12 bg-transparent" placeholder="简介..." />
-                                </div>
-                                <div className="space-y-4 pb-10">
-                                    <h3 className="font-bold text-stone-700 text-xs flex gap-1 uppercase tracking-widest items-center"><Utensils size={14} /> 招式预览</h3>
-                                    {sections.map(section => (
-                                        <div key={section.id} className="bg-stone-50 p-4 rounded-xl border border-stone-200 shadow-sm">
-                                            <div className="flex justify-between mb-3 border-b border-stone-200 pb-2">
-                                                <input className="font-bold text-sm bg-transparent outline-none w-full text-stone-800" value={section.title} onChange={e => setSections(prev => prev.map(s => s.id === section.id ? {...s, title: e.target.value} : s))} />
-                                            </div>
-                                            <div className="space-y-3 pl-3 border-l-2 border-amber-300 ml-1">
-                                                {section.items.map((item, idx) => (
-                                                    <div key={item.id} className="text-sm flex gap-2 items-center">
-                                                        <span className="text-xs text-amber-700 font-bold w-4">{idx+1}.</span>
-                                                        <span className="font-bold text-stone-700 flex-1 truncate">{item.name || '未命名'}</span>
-                                                        <span className="text-amber-600 text-xs font-mono">{item.price}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
+                                
+                                <div className="space-y-4 md:space-y-6 pb-20">
+                                    <div>
+                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">菜名</label>
+                                        <input value={menuTitle} onChange={e => setMenuTitle(e.target.value)} className="w-full font-black text-2xl md:text-3xl border-b-2 border-stone-200 focus:border-amber-600 outline-none bg-transparent transition-all py-2" placeholder="输入菜名" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-stone-400 uppercase tracking-widest mb-1">简介</label>
+                                        <textarea value={menuSubtitle} onChange={e => setMenuSubtitle(e.target.value)} className="w-full text-base md:text-lg text-stone-600 border-b border-stone-200 focus:border-amber-600 outline-none resize-none h-16 bg-transparent py-2" placeholder="简短描述..." />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     )}
 
-                    {/* 修炼/预览模式 - 移动端高度适配 */}
-                    <div className={`flex-1 overflow-y-auto custom-scrollbar relative flex flex-col items-center ${isCooking ? currentTheme.cook.bg : 'bg-stone-100 p-4 md:p-8'}`}>
+                    {/* 预览/沉浸区 - 字体和布局优化 */}
+                    <div className={`flex-1 overflow-hidden relative flex flex-col ${isCooking ? currentTheme.cook.bg : 'bg-stone-100'}`}>
                         {!isCooking && cookingFlow.length > 0 && (
-                            <div className="sticky top-0 z-20 mb-6 flex gap-3 w-full max-w-2xl justify-end">
-                                <button onClick={startCooking} className="bg-stone-900 text-white px-6 md:px-8 py-3 md:py-4 rounded-full shadow-2xl flex items-center gap-3 hover:scale-105 transition-all font-bold animate-pulse ring-8 ring-stone-900/10 text-sm md:text-base"><PlayCircle size={20} /> 开始修炼</button>
+                            <div className="absolute bottom-6 md:bottom-10 right-6 md:right-10 z-30">
+                                <button onClick={startCooking} className="bg-stone-900 text-white px-8 py-4 md:px-10 md:py-5 rounded-full shadow-2xl flex items-center gap-3 hover:scale-105 transition-all font-bold animate-bounce ring-4 ring-stone-900/20 text-lg md:text-xl"><PlayCircle size={24} /> 开始修炼</button>
                             </div>
                         )}
 
                         {isCooking && (
-                            <div className={`fixed inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-[100dvh] animate-in fade-in duration-500`}>
+                            <div className={`fixed inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-[100dvh] w-[100vw]`}>
                                 {/* 顶栏 */}
-                                <div className={`flex justify-between items-center p-3 md:p-4 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0`}>
-                                    <div className="flex items-center gap-3">
-                                        <button onClick={() => setIsCooking(false)} className="p-2 rounded-full hover:bg-white/10"><X size={20} /></button>
+                                <div className={`flex justify-between items-center p-4 md:p-5 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0 safe-area-top`}>
+                                    <div className="flex items-center gap-4">
+                                        <button onClick={() => setIsCooking(false)} className="p-2 rounded-full hover:bg-white/10"><X size={24} /></button>
                                         <div className="flex flex-col">
-                                            <span className="font-black text-[10px] uppercase tracking-[0.2em] opacity-50">第 {currentStepIndex + 1} / {cookingFlow.length} 步</span>
-                                            <span className="font-bold truncate max-w-[120px] md:max-w-[150px] text-xs opacity-90">{currentStep.sectionTitle}</span>
+                                            <span className="font-black text-xs md:text-sm uppercase tracking-[0.2em] opacity-50">步骤 {currentStepIndex + 1} / {cookingFlow.length}</span>
                                         </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => setShowThemeModal(!showThemeModal)} className="px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-bold bg-white/10 hover:bg-white/20 flex items-center gap-2"><Palette size={14} /> <span className="hidden md:inline">流派</span></button>
-                                        <button onClick={() => setShowIngredientsModal(true)} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-full text-xs font-bold transition-all bg-white/10 hover:bg-white/20 flex items-center gap-2`}><ShoppingCart size={14} /> 查料</button>
+                                    <div className="flex gap-3">
+                                        <button onClick={() => setShowThemeModal(!showThemeModal)} className="px-4 py-2 rounded-full text-sm font-bold bg-white/10 hover:bg-white/20 flex items-center gap-2"><Palette size={16} /> <span className="hidden md:inline">流派</span></button>
+                                        <button onClick={() => setShowIngredientsModal(true)} className={`px-4 py-2 rounded-full text-sm font-bold transition-all bg-white/10 hover:bg-white/20 flex items-center gap-2`}><ShoppingCart size={16} /> 查料</button>
                                     </div>
                                 </div>
 
-                                {/* 查料模态框 */}
+                                {/* 查料模态框 - 大字号 */}
                                 {showIngredientsModal && (
                                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-in fade-in duration-200">
-                                        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowIngredientsModal(false)}></div>
-                                        <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-3xl p-6 md:p-8 shadow-2xl w-full max-w-2xl relative animate-in zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col`}>
-                                            <div className="flex justify-between items-center mb-6">
-                                                <h3 className={`text-xl md:text-2xl font-black ${currentTheme.cook.accentText} flex items-center gap-3`}><ShoppingCart size={24}/> 当前备料清单</h3>
-                                                <button onClick={() => setShowIngredientsModal(false)} className="p-2 hover:bg-white/10 rounded-full"><X size={24}/></button>
+                                        <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={() => setShowIngredientsModal(false)}></div>
+                                        <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-3xl p-6 md:p-10 shadow-2xl w-full max-w-3xl relative animate-in zoom-in-95 max-h-[85vh] overflow-hidden flex flex-col`}>
+                                            <div className="flex justify-between items-center mb-8">
+                                                <h3 className={`text-2xl md:text-3xl font-black ${currentTheme.cook.accentText} flex items-center gap-3`}><ShoppingCart size={32}/> 备料清单</h3>
+                                                <button onClick={() => setShowIngredientsModal(false)} className="p-2 hover:bg-white/10 rounded-full"><X size={28}/></button>
                                             </div>
                                             <div className="overflow-y-auto custom-scrollbar flex-1 pr-2">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                     {ingredientGroups.map((group, gIdx) => (
                                                         <div key={gIdx}>
-                                                            <h4 className="text-xs font-bold opacity-40 uppercase tracking-widest mb-3">{group.category}</h4>
-                                                            <div className="space-y-2">
+                                                            <h4 className="text-sm font-bold opacity-50 uppercase tracking-widest mb-4">{group.category}</h4>
+                                                            <div className="space-y-3">
                                                                 {group.items.map((ing, i) => (
-                                                                    <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                                                                        <div className={`w-1.5 h-1.5 rounded-full ${currentTheme.cook.progress}`}></div>
-                                                                        <span className="text-base md:text-lg font-medium">{ing}</span>
+                                                                    <div key={i} className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5">
+                                                                        <div className={`w-2 h-2 rounded-full ${currentTheme.cook.progress}`}></div>
+                                                                        <span className="text-xl md:text-2xl font-medium">{ing}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -477,48 +476,51 @@
                                     </div>
                                 )}
 
-                                {/* 换肤弹窗 */}
+                                {/* 换肤 */}
                                 {showThemeModal && (
-                                    <div className="absolute top-[60px] md:top-[75px] right-4 z-50 animate-in zoom-in-95 origin-top-right">
-                                        <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-2xl p-4 shadow-2xl flex flex-col gap-2 min-w-[160px]`}>
+                                    <div className="absolute top-[80px] right-4 z-50 animate-in zoom-in-95 origin-top-right">
+                                        <div className={`${currentTheme.cook.card} border ${currentTheme.cook.border} rounded-2xl p-4 shadow-2xl flex flex-col gap-2 min-w-[180px]`}>
                                             {Object.entries(THEMES).map(([key, t]) => (
-                                                <button key={key} onClick={() => { setCurrentThemeKey(key); setShowThemeModal(false); }} className={`text-left px-4 py-2.5 rounded-xl text-sm flex items-center gap-3 transition-colors hover:bg-white/10 ${currentThemeKey === key ? currentTheme.cook.accentText : ''}`}>
-                                                    <div className={`w-3 h-3 rounded-full ${t.cook.progress}`}></div>{t.name}
+                                                <button key={key} onClick={() => { setCurrentThemeKey(key); setShowThemeModal(false); }} className={`text-left px-4 py-3 rounded-xl text-base font-bold flex items-center gap-3 transition-colors hover:bg-white/10 ${currentThemeKey === key ? currentTheme.cook.accentText : ''}`}>
+                                                    <div className={`w-4 h-4 rounded-full ${t.cook.progress}`}></div>{t.name}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
                                 )}
 
-                                <div className={`w-full h-1.5 ${currentTheme.cook.card} shrink-0`}>
-                                    <div className={`${currentTheme.cook.progress} h-1.5 transition-all duration-500`} style={{ width: `${((currentStepIndex + 1) / cookingFlow.length) * 100}%` }}></div>
+                                <div className={`w-full h-2 ${currentTheme.cook.card} shrink-0`}>
+                                    <div className={`${currentTheme.cook.progress} h-2 transition-all duration-500`} style={{ width: `${((currentStepIndex + 1) / cookingFlow.length) * 100}%` }}></div>
                                 </div>
 
-                                {/* 内容区 - 优化垂直居中 */}
-                                <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden relative justify-center">
-                                    <div className="w-full mx-auto flex flex-col h-full max-w-4xl items-center justify-center">
+                                {/* 核心内容区 - 横屏适配优化 */}
+                                <div className="flex-1 flex flex-col overflow-hidden relative">
+                                    <div className="w-full h-full overflow-y-auto custom-scrollbar p-4 md:p-8 flex flex-col items-center">
                                         
                                         {currentStep.type === 'INTRO' && (
-                                            <div className="text-center space-y-6 md:space-y-8 animate-in zoom-in-95 duration-700 px-4">
-                                                <BookOpen size={48} className={`mx-auto ${currentTheme.cook.accentText}`} />
-                                                <h1 className="text-4xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-stone-500 leading-tight">{currentStep.name}</h1>
-                                                <p className="text-lg md:text-3xl font-light italic opacity-60 max-w-2xl mx-auto whitespace-pre-line">“{currentStep.desc}”</p>
+                                            <div className="text-center space-y-8 md:space-y-12 animate-in zoom-in-95 duration-700 py-10 md:py-20 max-w-4xl mx-auto">
+                                                <BookOpen size={64} className={`mx-auto ${currentTheme.cook.accentText}`} />
+                                                <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-transparent bg-clip-text bg-gradient-to-b from-white to-stone-500 leading-tight">{currentStep.name}</h1>
+                                                <p className="text-2xl md:text-4xl font-light italic opacity-60 max-w-3xl mx-auto leading-normal">“{currentStep.desc}”</p>
                                             </div>
                                         )}
 
                                         {currentStep.type === 'PREP' && (
-                                            <div className="w-full flex flex-col h-full max-h-[70vh] md:max-h-[80vh] animate-in slide-in-from-bottom-8">
-                                                <div className="mb-4 md:mb-8 text-center shrink-0">
-                                                    <h2 className="text-2xl md:text-4xl font-black mb-2 flex items-center justify-center gap-3"><ShoppingCart size={28} /> 备料阶段</h2>
-                                                    <p className="opacity-50 italic text-sm md:text-base">请确认所有食材已就位</p>
+                                            <div className="w-full max-w-5xl mx-auto pb-20 animate-in slide-in-from-bottom-8">
+                                                <div className="mb-8 md:mb-12 text-center">
+                                                    <h2 className="text-3xl md:text-5xl font-black mb-4 flex items-center justify-center gap-4"><ShoppingCart size={40} /> 备料阶段</h2>
+                                                    <p className="opacity-50 text-lg md:text-xl">请确认所有食材已就位</p>
                                                 </div>
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 md:pr-4 grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                                                     {ingredientGroups.map((group, gIdx) => (
-                                                        <div key={gIdx} className={`${currentTheme.cook.card} p-4 md:p-6 rounded-3xl border ${currentTheme.cook.border}`}>
-                                                            <h3 className={`text-xs font-bold ${currentTheme.cook.accentText} uppercase mb-4`}>{group.category}</h3>
-                                                            <div className="space-y-2 md:space-y-3">
+                                                        <div key={gIdx} className={`${currentTheme.cook.card} p-6 md:p-8 rounded-[2rem] border ${currentTheme.cook.border}`}>
+                                                            <h3 className={`text-sm font-bold ${currentTheme.cook.accentText} uppercase mb-6 tracking-widest`}>{group.category}</h3>
+                                                            <div className="space-y-3 md:space-y-4">
                                                                 {group.items.map((ing, i) => (
-                                                                    <div key={i} className="flex items-center gap-4 text-base md:text-lg p-2 md:p-3 rounded-xl bg-white/5"><div className={`w-2 h-2 rounded-full ${currentTheme.cook.progress}`}></div><span className="font-medium">{ing}</span></div>
+                                                                    <div key={i} className="flex items-center gap-4 text-xl md:text-2xl p-3 md:p-4 rounded-2xl bg-white/5">
+                                                                        <div className={`w-3 h-3 rounded-full ${currentTheme.cook.progress}`}></div>
+                                                                        <span className="font-bold">{ing}</span>
+                                                                    </div>
                                                                 ))}
                                                             </div>
                                                         </div>
@@ -528,65 +530,75 @@
                                         )}
 
                                         {currentStep.type === 'STEP' && (
-                                            <div className="flex flex-col md:flex-row gap-4 md:gap-8 h-full w-full items-center justify-center animate-in fade-in">
-                                                {currentStep.price && <div className="shrink-0 flex items-center scale-75 md:scale-100"><HeatDisplay heatText={currentStep.price} /></div>}
-                                                <div className={`${currentTheme.cook.card} flex-1 w-full max-w-2xl rounded-3xl md:rounded-[3rem] p-6 md:p-10 shadow-2xl border ${currentTheme.cook.border} relative flex flex-col h-auto max-h-[60vh] md:max-h-[70vh] justify-between transition-all overflow-hidden`}>
-                                                    <div className="relative z-10 shrink-0">
-                                                        <div className="flex justify-between items-center mb-4 md:mb-6">
-                                                            <span className={`px-3 py-1 md:px-4 md:py-1.5 rounded-full text-[10px] md:text-xs font-black tracking-widest uppercase border border-white/10 bg-white/5 ${currentTheme.cook.accentText}`}>{currentStep.sectionTitle}</span>
+                                            <div className="w-full h-full flex flex-col md:justify-center max-w-5xl mx-auto pb-10">
+                                                {/* 横屏优化容器 */}
+                                                <div className="flex flex-col landscape:md:flex-row gap-6 md:gap-10 items-stretch landscape:md:h-[60vh]">
+                                                    {/* 左侧：步骤信息 (横屏时在左侧) */}
+                                                    <div className={`${currentTheme.cook.card} flex-1 rounded-[2.5rem] p-6 md:p-10 shadow-2xl border ${currentTheme.cook.border} relative flex flex-col transition-all overflow-hidden`}>
+                                                        <div className="relative z-10 shrink-0">
+                                                            <div className="flex justify-between items-start mb-6">
+                                                                <span className={`px-4 py-1.5 rounded-full text-xs md:text-sm font-black tracking-widest uppercase border border-white/10 bg-white/5 ${currentTheme.cook.accentText}`}>{currentStep.sectionTitle}</span>
+                                                                {currentStep.price && <div className="scale-90 origin-top-right md:scale-100"><HeatDisplay heatText={currentStep.price} /></div>}
+                                                            </div>
+                                                            <h2 className="text-3xl md:text-5xl lg:text-6xl font-black mb-6 leading-tight">{currentStep.name || `招式 ${currentStepIndex}`}</h2>
+                                                            <div className="h-px w-full bg-gradient-to-r from-white/20 to-transparent mb-6"></div>
                                                         </div>
-                                                        <h2 className="text-2xl md:text-5xl font-black mb-4 md:mb-6 leading-tight">{currentStep.name || `招式 ${currentStepIndex}`}</h2>
-                                                        <div className="h-px w-full bg-gradient-to-r from-white/20 to-transparent mb-4 md:mb-6"></div>
+                                                        <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10">
+                                                            <p className="text-2xl md:text-4xl lg:text-4xl opacity-90 leading-relaxed font-normal">{currentStep.desc}</p>
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-1 flex flex-col justify-center py-2 md:py-4 relative z-10 overflow-y-auto custom-scrollbar">
-                                                        <p className="text-lg md:text-3xl opacity-90 leading-relaxed font-light">{currentStep.desc}</p>
-                                                        {currentStep.timerSeconds > 0 && <Timer key={currentStepIndex} initialSeconds={currentStep.timerSeconds} onComplete={handleTimerComplete} colorClass={currentTheme.cook.accentText} />}
-                                                    </div>
+
+                                                    {/* 右侧/下方：计时器 (横屏时在右侧，固定宽度) */}
+                                                    {currentStep.timerSeconds > 0 && (
+                                                        <div className="shrink-0 w-full landscape:md:w-[350px] flex items-center justify-center">
+                                                            <Timer key={currentStepIndex} initialSeconds={currentStep.timerSeconds} onComplete={handleTimerComplete} colorClass={currentTheme.cook.accentText} />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
-                                {/* 底部导航 - 增加底部安全区 */}
-                                <div className={`p-4 md:p-6 pb-6 md:pb-6 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-3 md:gap-4 shrink-0 safe-area-bottom`}>
-                                    <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-4 md:p-5 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={24} className="md:w-8 md:h-8" /></button>
-                                    <button onClick={currentStepIndex === cookingFlow.length - 1 ? () => setIsCooking(false) : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[4] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-4 md:p-5 rounded-3xl font-black text-lg md:text-2xl transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95 ring-4 ring-white/10`}>
+                                {/* 底部导航 - 增加高度适配手势 */}
+                                <div className={`p-4 md:p-6 pb-8 md:pb-10 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 md:gap-6 shrink-0 safe-area-bottom`}>
+                                    <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-5 md:p-6 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={32} /></button>
+                                    <button onClick={currentStepIndex === cookingFlow.length - 1 ? () => setIsCooking(false) : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[3] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-5 md:p-6 rounded-3xl font-black text-xl md:text-3xl transition-all shadow-2xl flex items-center justify-center gap-4 active:scale-95 ring-4 ring-white/10`}>
                                         {currentStepIndex === cookingFlow.length - 1 ? '修炼完成' : (currentStep.type === 'INTRO' ? '查看备料' : (currentStep.type === 'PREP' ? '开始修炼' : '下一式'))}
-                                        {currentStepIndex !== cookingFlow.length - 1 && <ChevronRight size={24} className="md:w-7 md:h-7" />}
+                                        {currentStepIndex !== cookingFlow.length - 1 && <ChevronRight size={32} />}
                                     </button>
                                 </div>
                             </div>
                         )}
 
-                        {/* 默认预览 */}
+                        {/* 编辑器的预览区 - iPad 和桌面可见 */}
                         {!isCooking && (
-                            <div className="w-full max-w-2xl h-full pb-10">
+                            <div className="w-full h-full overflow-y-auto custom-scrollbar p-4 md:p-10 lg:p-16 flex justify-center">
                                 {menuTitle ? (
-                                    <div className={`w-full min-h-[500px] md:min-h-[1000px] p-6 md:p-20 shadow-2xl relative bg-white transition-all transform scale-100 md:scale-95 origin-top rounded-lg ${currentTheme.preview.text} ${currentTheme.preview.bg}`}>
-                                        <div className={`w-full flex flex-col md:flex-row justify-between items-start md:items-end border-b-4 ${currentTheme.preview.border} pb-6 md:pb-10 mb-6 md:mb-10`}>
-                                            <div className="space-y-4 w-full">
-                                                <div className="inline-block px-3 py-1 bg-stone-800 text-white text-[10px] font-black uppercase tracking-[0.3em]">秘籍卷轴</div>
-                                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight">{menuTitle}</h1>
-                                                <p className="opacity-70 text-base md:text-xl italic leading-relaxed border-l-4 border-amber-500 pl-4 md:pl-6">{menuSubtitle}</p>
+                                    <div className={`w-full max-w-4xl min-h-[80vh] p-8 md:p-16 shadow-2xl relative bg-white rounded-xl ${currentTheme.preview.text} ${currentTheme.preview.bg} mb-20`}>
+                                        <div className={`w-full flex flex-col md:flex-row justify-between items-start md:items-end border-b-4 ${currentTheme.preview.border} pb-8 md:pb-12 mb-8 md:mb-12`}>
+                                            <div className="space-y-6 w-full">
+                                                <div className="inline-block px-4 py-1.5 bg-stone-800 text-white text-xs md:text-sm font-black uppercase tracking-[0.3em]">秘籍卷轴</div>
+                                                <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">{menuTitle}</h1>
+                                                <p className="opacity-70 text-lg md:text-2xl italic leading-relaxed border-l-4 border-amber-500 pl-6">{menuSubtitle}</p>
                                             </div>
-                                            <div className="opacity-10 hidden md:block"><ChefHat size={120}/></div>
+                                            <div className="opacity-10 hidden md:block"><ChefHat size={150}/></div>
                                         </div>
 
                                         {ingredientGroups.length > 0 && (
-                                            <div className="mb-8 md:mb-12 p-6 md:p-8 rounded-3xl border bg-stone-50/50 border-stone-200">
-                                                <h3 className="font-black mb-6 md:mb-8 flex items-center gap-3 text-sm uppercase tracking-widest text-amber-800 border-b border-stone-200 pb-4"><ShoppingCart size={20} /> 备料清单</h3>
+                                            <div className="mb-10 md:mb-16 p-6 md:p-10 rounded-3xl border bg-stone-50/50 border-stone-200">
+                                                <h3 className="font-black mb-6 md:mb-8 flex items-center gap-3 text-base md:text-lg uppercase tracking-widest text-amber-800 border-b border-stone-200 pb-4"><ShoppingCart size={24} /> 备料清单</h3>
                                                 <div className="space-y-8 md:space-y-10">
                                                     {ingredientGroups.map((group, gIdx) => (
                                                         <div key={gIdx}>
-                                                            <h4 className="text-[10px] font-black opacity-40 uppercase mb-4 tracking-widest flex items-center gap-2">
-                                                                <Layers size={12} /> {group.category}
+                                                            <h4 className="text-xs font-black opacity-40 uppercase mb-4 tracking-widest flex items-center gap-2">
+                                                                <Layers size={14} /> {group.category}
                                                             </h4>
-                                                            <div className="flex flex-col gap-1">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                 {group.items.map((ing, i) => (
-                                                                    <div key={i} className="flex items-center gap-4 py-3 border-b border-stone-100 border-dashed last:border-0">
-                                                                        <div className="w-1.5 h-1.5 rounded-full bg-stone-300"></div>
-                                                                        <span className="text-sm md:text-base font-medium opacity-80">{ing}</span>
+                                                                    <div key={i} className="flex items-center gap-4 py-2 border-b border-stone-100 border-dashed">
+                                                                        <div className="w-2 h-2 rounded-full bg-stone-300 shrink-0"></div>
+                                                                        <span className="text-lg md:text-xl font-medium opacity-80">{ing}</span>
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -596,18 +608,18 @@
                                             </div>
                                         )}
 
-                                        <div className="space-y-8 md:space-y-12">
+                                        <div className="space-y-10 md:space-y-16">
                                             {sections.map((section, sIdx) => (
                                                 <div key={section.id}>
-                                                    <h3 className="flex items-center gap-4 font-black text-xl md:text-2xl mb-4 md:mb-6"><span className="bg-stone-800 text-white w-8 h-8 md:w-10 md:h-10 rounded-2xl flex items-center justify-center text-xs md:text-sm">{sIdx + 1}</span>{section.title}</h3>
-                                                    <div className="grid grid-cols-1 gap-6 pl-4 md:pl-5 border-l-2 border-stone-200 ml-4 md:ml-5">
+                                                    <h3 className="flex items-center gap-4 font-black text-2xl md:text-3xl mb-6 md:mb-8"><span className="bg-stone-800 text-white w-10 h-10 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-base md:text-lg shadow-lg">{sIdx + 1}</span>{section.title}</h3>
+                                                    <div className="grid grid-cols-1 gap-8 pl-5 md:pl-6 border-l-2 border-stone-200 ml-5 md:ml-6">
                                                         {section.items.map((item, idx) => (
-                                                            <div key={item.id} className="relative pb-6 last:pb-0">
-                                                                <div className="flex justify-between items-baseline mb-2">
-                                                                    <h4 className="font-black text-base md:text-lg opacity-90">{item.name || `第 ${idx+1} 招`}</h4>
-                                                                    {item.price && <span className={`text-[10px] font-black px-2 py-0.5 md:px-3 md:py-1 rounded-full flex items-center gap-1 ${currentTheme.preview.badge}`}>{item.price}</span>}
+                                                            <div key={item.id} className="relative pb-8 last:pb-0">
+                                                                <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-3 gap-2">
+                                                                    <h4 className="font-black text-xl md:text-2xl opacity-90">{item.name || `第 ${idx+1} 招`}</h4>
+                                                                    {item.price && <span className={`self-start md:self-auto text-xs md:text-sm font-black px-3 py-1 rounded-full flex items-center gap-1 ${currentTheme.preview.badge}`}>{item.price}</span>}
                                                                 </div>
-                                                                <p className="text-sm md:text-base opacity-70 leading-relaxed font-light">{item.desc}</p>
+                                                                <p className="text-lg md:text-xl opacity-70 leading-loose font-light">{item.desc}</p>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -616,9 +628,12 @@
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-stone-400 opacity-40 py-20">
-                                        <Scroll size={60} className="text-stone-300 mb-6" />
-                                        <h3 className="text-xl md:text-2xl font-black uppercase tracking-widest text-center px-4">请在上方粘贴并参悟秘籍</h3>
+                                    <div className="flex flex-col items-center justify-center h-full text-stone-300 py-20">
+                                        <div className="w-24 h-24 bg-stone-200 rounded-full flex items-center justify-center mb-6 animate-pulse">
+                                            <Scroll size={48} className="text-stone-400" />
+                                        </div>
+                                        <h3 className="text-xl md:text-3xl font-black uppercase tracking-widest text-center px-4 mb-2 text-stone-400">请在左侧粘贴秘籍</h3>
+                                        <p className="text-stone-300">支持从小红书、下厨房等复制文本</p>
                                     </div>
                                 )}
                             </div>
