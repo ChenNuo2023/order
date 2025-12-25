@@ -2,15 +2,15 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <!-- 1. PWA 核心配置：沉浸式体验，禁止缩放，适配刘海屏 -->
+    <!-- 1. PWA 核心配置：沉浸式体验 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
-    <!-- === iOS 沉浸式 APP 模式设置 (参考您的代码) === -->
+    <!-- iOS 沉浸式 APP 模式设置 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1c1917">
 
-    <title>厨圣大百科</title>
+    <title>绝世食谱 - 沉浸式烹饪助手</title>
     
     <!-- 2. 图标设置 -->
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-192.png">
@@ -56,22 +56,15 @@
     </script>
 
     <style>
-        /* 参考您的 CSS 优化 */
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 
+        /* ✅ Body 样式重置：只保留最小约束，去除 padding */
         body {
             font-family: 'Noto Sans SC', sans-serif;
-            background-color: #1c1917; /* bg-stone-900 匹配主题色 */
-            color: #1e293b;
-            /* 禁止橡皮筋效果 */
-            overscroll-behavior-y: none; 
-            /* 关键：全局设置安全区 padding */
-            padding-top: env(safe-area-inset-top);
-            padding-bottom: env(safe-area-inset-bottom);
-            /* 确保全屏高度 */
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
+            background-color: #1c1917;
+            margin: 0;
+            width: 100%;
+            overscroll-behavior-y: none; /* 禁止 iOS 橡皮筋效果 */
         }
 
         .font-serif {
@@ -82,7 +75,6 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
         
-        /* 隐藏滚动条但保留功能 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -145,7 +137,6 @@
             }
         };
 
-        // --- 升级系统配置 (经验值拉长) ---
         const LEVELS = [
             { name: '入灶期', desc: '初识烟火，锅铲为伴', max: 50 },
             { name: '引火期', desc: '掌控火候，渐入佳境', max: 150 },
@@ -775,13 +766,21 @@
             const currentStep = cookingFlow[currentStepIndex] || {};
 
             return (
-                <div className="h-[100dvh] w-full flex flex-col md:flex-row font-sans overflow-hidden">
+                <div 
+                    className="w-full flex flex-col md:flex-row font-sans overflow-hidden bg-stone-100 relative"
+                    style={{
+                        height: '100dvh', // ✅ 使用 100dvh
+                        paddingTop: 'env(safe-area-inset-top)', // ✅ 根容器处理顶部安全区
+                        paddingBottom: 'env(safe-area-inset-bottom)', // ✅ 根容器处理底部安全区
+                        boxSizing: 'border-box'
+                    }}
+                >
                     
                     {/* 编辑区 - 针对iPad优化布局 */}
                     {!isCooking && (
                         <div className="w-full md:w-[400px] lg:w-[450px] bg-white shadow-xl z-20 border-b md:border-r border-stone-200 h-[45vh] md:h-full relative flex flex-col shrink-0">
                             {/* 1. 每日一练 大标题 & 等级展示 - 手机竖屏高度压缩优化 */}
-                            <div className="safe-area-top pb-2 px-3 md:pt-6 md:pb-4 md:px-6 bg-stone-900 text-stone-200 shrink-0 shadow-lg z-20 relative">
+                            <div className="pt-2 pb-2 px-3 md:pt-6 md:pb-4 md:px-6 bg-stone-900 text-stone-200 shrink-0 shadow-lg z-20 relative">
                                 <div className="flex justify-between items-start mb-1 md:mb-4">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
@@ -864,9 +863,10 @@
                         )}
 
                         {isCooking && (
-                            <div className={`fixed inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-[100dvh] w-[100vw]`}>
-                                {/* 顶栏 - 横屏模式下缩小高度 (landscape:p-2) */}
-                                <div className={`flex justify-between items-center p-4 landscape:p-2 md:p-5 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0 safe-area-top`}>
+                            // ✅ 使用 absolute 代替 fixed，确保在父容器 padding 内部
+                            <div className={`absolute inset-0 z-50 ${currentTheme.cook.bg} ${currentTheme.cook.text} flex flex-col h-full w-full`}>
+                                {/* 顶栏 - 横屏模式下缩小高度 (landscape:p-2) - 移除所有 safe-area 类 */}
+                                <div className={`flex justify-between items-center p-4 landscape:p-2 md:p-5 shadow-md z-20 ${currentTheme.cook.card} ${currentTheme.cook.border} border-b shrink-0`}>
                                     <div className="flex items-center gap-4">
                                         <button onClick={() => setIsCooking(false)} className="p-2 rounded-full hover:bg-white/10"><X size={24} /></button>
                                         <div className="flex flex-col">
@@ -1036,8 +1036,8 @@
                                     </div>
                                 </div>
 
-                                {/* 底部导航 - 横屏模式下缩小 padding (landscape:p-2) */}
-                                <div className={`p-4 landscape:p-2 md:p-6 pb-8 landscape:pb-4 md:pb-10 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 md:gap-6 shrink-0 safe-area-bottom`}>
+                                {/* 底部导航 - 横屏模式下缩小 padding (landscape:p-2) - 移除所有 safe-area 类 */}
+                                <div className={`p-4 landscape:p-2 md:p-6 pb-8 landscape:pb-4 md:pb-10 ${currentTheme.cook.card} border-t ${currentTheme.cook.border} flex gap-4 md:gap-6 shrink-0`}>
                                     <button onClick={() => setCurrentStepIndex(curr => Math.max(0, curr - 1))} disabled={currentStepIndex === 0} className={`p-5 landscape:p-3 md:p-6 rounded-3xl flex-1 flex items-center justify-center transition-all bg-white/5 ${currentStepIndex === 0 ? 'opacity-30' : 'hover:bg-white/10 active:scale-95'}`}><ChevronLeft size={32} /></button>
                                     <button onClick={currentStepIndex === cookingFlow.length - 1 ? handleFinish : () => setCurrentStepIndex(curr => curr + 1)} className={`flex-[3] ${currentTheme.cook.primary} ${currentTheme.cook.primaryHover} text-white p-5 landscape:p-3 md:p-6 rounded-3xl font-black text-xl md:text-3xl transition-all shadow-2xl flex items-center justify-center gap-4 active:scale-95 ring-4 ring-white/10`}>
                                         {currentStepIndex === cookingFlow.length - 1 ? '修炼完成' : (currentStep.type === 'INTRO' ? '查看备料' : (currentStep.type === 'PREP' ? '开始修炼' : '下一式'))}
@@ -1045,6 +1045,15 @@
                                     </button>
                                 </div>
                             </div>
+                        )}
+
+                        {/* 等级详情弹窗 */}
+                        {showLevelModal && (
+                            <LevelModal 
+                                totalXP={totalXP} 
+                                onClose={() => setShowLevelModal(false)} 
+                                onReset={handleResetXP}
+                            />
                         )}
 
                         {/* 编辑器的预览区 - iPad 和桌面可见 */}
