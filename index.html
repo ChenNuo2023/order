@@ -6,13 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="绝世食谱">
+    <meta name="apple-mobile-web-app-title" content="厨圣大百科">
     <meta name="theme-color" content="#1c1917"> <!-- 匹配深色背景 -->
 
     <title>绝世食谱 - 沉浸式烹饪助手</title>
-    <!-- === 图标设置（iOS / Android 稳定版） === -->
+    
+    <!-- 2. 图标设置 (使用您提供的 Flaticon 古籍图标链接) -->
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-180.png">
+
     <!-- 3. 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -70,8 +72,9 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom);
         }
+        /* 顶部安全区适配，增加基础内边距防止贴边 */
         .safe-area-top {
-            padding-top: max(env(safe-area-inset-top), 20px);
+            padding-top: max(env(safe-area-inset-top), 24px); 
         }
     </style>
 </head>
@@ -594,6 +597,19 @@
                 localStorage.removeItem('cooking_master_xp');
             };
 
+            // 彻底清空当前录入并返回主界面
+            const resetEditor = () => {
+                setMenuTitle('');
+                setMenuSubtitle('');
+                setIngredientGroups([]);
+                setSections([]);
+                setTips([]);
+                setRawText('');
+                setIsCooking(false);
+                setShowCheckIn(false);
+                setCurrentStepIndex(0);
+            };
+
             // 保存历史记录的函数
             const saveMenuToHistory = (title, subtitle, ingredients, secs, currentTips) => {
                 if (!title) return;
@@ -767,7 +783,7 @@
                     {!isCooking && (
                         <div className="w-full md:w-[400px] lg:w-[450px] bg-white shadow-xl z-20 border-b md:border-r border-stone-200 h-[45vh] md:h-full relative flex flex-col shrink-0">
                             {/* 1. 每日一练 大标题 & 等级展示 - 手机竖屏高度压缩优化 */}
-                            <div className="pt-safe-top pt-4 pb-2 px-3 md:pt-6 md:pb-4 md:px-6 bg-stone-900 text-stone-200 shrink-0 shadow-lg z-20 relative">
+                            <div className="safe-area-top pb-2 px-3 md:pt-6 md:pb-4 md:px-6 bg-stone-900 text-stone-200 shrink-0 shadow-lg z-20 relative">
                                 <div className="flex justify-between items-start mb-1 md:mb-4">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
@@ -875,7 +891,7 @@
                                 {showCheckIn && (
                                     <CheckInCard 
                                         menuTitle={menuTitle} 
-                                        onClose={() => {setShowCheckIn(false); setIsCooking(false);}} // 关闭打卡即结束烹饪
+                                        onClose={resetEditor} // 关闭打卡即清空数据
                                         theme={currentTheme}
                                         onGainXP={handleGainXP} // 传递经验获取函数
                                     />
@@ -1134,5 +1150,4 @@
     </script>
 </body>
 </html>
-
 
