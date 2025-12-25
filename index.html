@@ -4,14 +4,15 @@
     <meta charset="UTF-8">
     <!-- 1. PWA 核心配置：沉浸式体验，禁止缩放，适配刘海屏 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <!-- === iOS 沉浸式 APP 模式设置 (参考您的代码) === -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="厨圣大百科">
-    <meta name="theme-color" content="#1c1917"> <!-- 匹配深色背景 -->
+    <meta name="theme-color" content="#1c1917">
 
-    <title>绝世食谱 - 沉浸式烹饪助手</title>
+    <title>厨圣大百科</title>
     
-    <!-- 2. 图标设置 (使用您提供的 Flaticon 古籍图标链接) -->
+    <!-- 2. 图标设置 -->
     <link rel="apple-touch-icon" sizes="180x180" href="./icon-192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="./icon-180.png">
 
@@ -55,11 +56,28 @@
     </script>
 
     <style>
+        /* 参考您的 CSS 优化 */
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
         body {
-            -webkit-tap-highlight-color: transparent;
-            -webkit-font-smoothing: antialiased;
-            overscroll-behavior-y: none; /* 防止橡皮筋效果影响APP质感 */
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #1c1917; /* bg-stone-900 匹配主题色 */
+            color: #1e293b;
+            /* 禁止橡皮筋效果 */
+            overscroll-behavior-y: none; 
+            /* 关键：全局设置安全区 padding */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            /* 确保全屏高度 */
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
         }
+
+        .font-serif {
+            font-family: 'Noto Serif SC', serif;
+        }
+
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
@@ -67,19 +85,10 @@
         /* 隐藏滚动条但保留功能 */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* 底部安全区适配 (iPhone X+) */
-        .safe-area-bottom {
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        /* 顶部安全区适配，增加基础内边距防止贴边 */
-        .safe-area-top {
-            padding-top: max(env(safe-area-inset-top), 24px); 
-        }
     </style>
 </head>
 <body class="bg-stone-100 overflow-hidden text-base md:text-lg">
-    <div id="root"></div>
+    <div id="root" class="h-full w-full"></div>
 
     <script type="text/babel" data-type="module">
         import React, { useState, useEffect, useMemo, useRef } from 'react';
@@ -223,9 +232,8 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         setImageSrc(event.target.result);
-                        // 上传图片即奖励经验，仅一次
                         if (!xpAwarded && onGainXP) {
-                            onGainXP(10); // 每次拍照打卡获得 10 经验
+                            onGainXP(10); 
                             setXpAwarded(true);
                         }
                     };
@@ -246,14 +254,10 @@
                     canvas.width = width;
                     canvas.height = height;
 
-                    // 1. 背景
                     ctx.fillStyle = '#f5f5f4';
                     ctx.fillRect(0, 0, width, height);
 
-                    // 2. 图片处理
                     const imgRatio = img.width / img.height;
-                    const canvasImgRatio = width / (width); 
-                    
                     const padding = 60;
                     const imgSize = width - (padding * 2);
                     
@@ -275,33 +279,27 @@
                          sourceY = (img.height - img.width) / 2;
                     }
 
-                    // 绘制图片
                     ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, padding, padding + 100, imgSize, imgSize);
                     
                     ctx.shadowColor = "transparent";
 
-                    // 3. 文字装饰 - 坐标修正，下移防止重叠
                     ctx.fillStyle = '#1c1917'; 
                     ctx.textAlign = 'center';
                     
-                    // 顶部标题
                     ctx.font = 'bold 50px "Noto Serif SC", serif';
                     ctx.fillStyle = '#78350f'; 
                     ctx.fillText('绝世食谱 · 每日一练', width / 2, 80);
 
-                    // 菜名 - 下移到 height - 180
                     ctx.font = 'bold 90px "Noto Serif SC", serif';
                     ctx.fillStyle = '#1c1917';
                     ctx.fillText(menuTitle, width / 2, height - 180);
 
-                    // 日期 - 下移到 height - 100
                     const date = new Date();
                     const dateStr = `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日`;
                     ctx.font = '40px sans-serif';
                     ctx.fillStyle = '#78716c'; 
                     ctx.fillText(dateStr, width / 2, height - 100);
 
-                    // 4. 印章
                     ctx.save();
                     ctx.translate(width - 180, height - 180);
                     ctx.rotate(-15 * Math.PI / 180);
@@ -1049,15 +1047,6 @@
                             </div>
                         )}
 
-                        {/* 等级详情弹窗 */}
-                        {showLevelModal && (
-                            <LevelModal 
-                                totalXP={totalXP} 
-                                onClose={() => setShowLevelModal(false)} 
-                                onReset={handleResetXP}
-                            />
-                        )}
-
                         {/* 编辑器的预览区 - iPad 和桌面可见 */}
                         {!isCooking && (
                             <div className="w-full h-full overflow-y-auto custom-scrollbar p-4 md:p-10 lg:p-16 flex justify-center">
@@ -1150,4 +1139,3 @@
     </script>
 </body>
 </html>
-
